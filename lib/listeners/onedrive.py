@@ -98,7 +98,7 @@ class Listener(object):
             'DefaultJitter': {
                 'Description': 'Jitter in agent reachback interval (0.0-1.0).',
                 'Required': True,
-                'Value': 0.0
+                'Value': 1.0
             },
             'DefaultLostLimit': {
                 'Description': 'Number of missed checkins before exiting',
@@ -757,11 +757,12 @@ class Listener(object):
                         dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
 
                 agent_ids = self.mainMenu.agents.get_agents_for_listener(listener_name)
+
                 for agent_id in agent_ids:  # Upload any tasks for the current agents
-                    #if isinstance(agent_id,bytes):
-                    #    agent_id = agent_id.decode('UTF-8')
+                    if isinstance(agent_id,bytes):
+                        agent_id = agent_id.decode('UTF-8')
                     task_data = self.mainMenu.agents.handle_agent_request(agent_id, 'powershell', staging_key,
-                                                                          update_lastseen=False)
+                                                                          update_lastseen=True)
                     if task_data:
                         try:
                             r = s.get("%s/drive/root:/%s/%s/%s.txt:/content" % (
@@ -790,6 +791,10 @@ class Listener(object):
                 for item in search.json()['children']:  # For each file in the results folder
                     try:
                         agent_id = item['name'].split(".")[0]
+
+                        for i in range(len(agent_ids)):
+                            agent_ids[i] = agent_ids[i].decode('UTF-8')
+
                         if not agent_id in agent_ids:  # If we don't recognize that agent, upload a message to restage
                             print(helpers.color(
                                 "[*] Invalid agent, deleting %s/%s and restaging" % (results_folder, item['name'])))
@@ -816,7 +821,7 @@ class Listener(object):
                             dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
                             r = s.get(item['@microsoft.graph.downloadUrl'])
                             self.mainMenu.agents.handle_agent_data(staging_key, r.content, listener_options,
-                                                                   update_lastseen=False)
+                                                                   update_lastseen=True)
                             message = "[*] Deleting {}/{}".format(results_folder, item['name'])
                             signal = json.dumps({
                                 'print': False,

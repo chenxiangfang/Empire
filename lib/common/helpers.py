@@ -758,6 +758,8 @@ def lastseen(stamp, delay, jitter):
     """
     try:
         delta = datetime.now() - datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S")
+        print(delta.seconds)
+        print(delay * (jitter + 1) * 5)
         if delta.seconds > delay * (jitter + 1) * 5:
             return color(stamp, "red")
         elif delta.seconds > delay * (jitter + 1):
