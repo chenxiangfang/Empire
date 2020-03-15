@@ -93,12 +93,12 @@ class Listener(object):
             'DefaultDelay': {
                 'Description': 'Agent delay/reach back interval (in seconds).',
                 'Required': True,
-                'Value': 60
+                'Value': 10
             },
             'DefaultJitter': {
                 'Description': 'Jitter in agent reachback interval (0.0-1.0).',
                 'Required': True,
-                'Value': 1.0
+                'Value': 0.0
             },
             'DefaultLostLimit': {
                 'Description': 'Number of missed checkins before exiting',
