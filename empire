@@ -134,6 +134,7 @@ def execute_db_query(conn, query, args=None):
 #    GET      http://localhost:1337/api/admin/shutdown              shutdown the RESTful API
 #
 #    GET      http://localhost:1337/api/users                       return all users from database
+#    GET      http://localhost:1337/api/users/X                     return the user with id X
 #    GET      http://localhost:1337/api/users/me                    return the user for the given token
 #    POST     http://localhost:1337/api/users                       add a new user
 #    PUT      http://localhost:1337/api/users/Y/disable             disable/enable user Y
@@ -1178,12 +1179,38 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         Returns JSON describing the reporting events from the backend database.
         """
-        reportingRaw = execute_db_query(conn, 'SELECT ID, name, event_type, message, time_stamp, taskID FROM reporting')
+        reportingRaw = execute_db_query(conn, '''
+        SELECT
+                reporting.time_stamp,
+                event_type,
+                u.username,
+                substr(reporting.name, pos+1) as agent_name,
+                a.hostname,
+                taskID,
+                t.data as "Task",
+                r.data as "Results"
+            FROM
+            (
+                SELECT
+                    time_stamp,
+                    event_type,
+                    name,
+                    instr(name, '/') as pos,
+                    taskID
+                FROM reporting
+                WHERE name LIKE 'agent%'
+                AND reporting.event_type == 'task' OR reporting.event_type == 'checkin') reporting
+                LEFT OUTER JOIN taskings t on (reporting.taskID = t.id) AND (agent_name = t.agent)
+                LEFT OUTER JOIN results r on (reporting.taskID = r.id) AND (agent_name = r.agent)
+                JOIN agents a on agent_name = a.session_id
+                LEFT OUTER JOIN users u on t.user_id = u.id
+                ORDER BY reporting.time_stamp DESC
+        ''')
         reportingEvents = []
 
         for reportingEvent in reportingRaw:
-            [ID, name, event_type, message, time_stamp, taskID] = reportingEvent
-            reportingEvents.append({"ID":ID, "agentname":name, "event_type":event_type, "message":json.loads(message), "timestamp":time_stamp, "taskID":taskID})
+            [time_stamp, event_type, user_name, agent_name, host_name, taskID, task, results] = reportingEvent
+            reportingEvents.append({"timestamp":time_stamp, "event_type":event_type, "username":user_name, "agent_name":agent_name, "host_name":host_name, "taskID":taskID, "task":task, "results":results})
 
         return jsonify({'reporting' : reportingEvents})
 
@@ -1308,6 +1335,19 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
             user_report.append(data)
 
         return jsonify({'users': user_report})
+
+    @app.route('/api/users/<int:uid>', methods=['GET'])
+    def get_user(uid):
+        """
+        return the user for an id
+        """
+        user = execute_db_query(conn, 'SELECT ID, username, last_logon_time, enabled, admin FROM users WHERE id = ?', [uid,])
+
+        if len(user) == 0:
+            make_response(jsonify({'error': 'user %s not found' % uid}), 404)
+
+        [ID, username, last_logon_time, enabled, admin] = user[0]
+        return jsonify({"ID": ID, "username": username, "last_logon_time": last_logon_time, "enabled": bool(enabled), "admin": bool(admin)})
 
 
     @app.route('/api/users/me', methods=['GET'])
@@ -1446,6 +1486,7 @@ if __name__ == '__main__':
 
     generalGroup = parser.add_argument_group('General Options')
     generalGroup.add_argument('--debug', nargs='?', const='1', help='Debug level for output (default of 1, 2 for msg display).')
+    generalGroup.add_argument('--reset', action='store_true', help="Resets Empire's database to defaults.")
     generalGroup.add_argument('-v', '--version', action='store_true', help='Display current Empire version.')
     generalGroup.add_argument('-r','--resource', nargs=1, help='Run the Empire commands in the specified resource file after startup.')
 
@@ -1472,6 +1513,13 @@ if __name__ == '__main__':
 
     if args.version:
         print(empire.VERSION)
+
+    if args.reset:
+        choice = input("\n [>] Would you like to reset your Empire instance? [y/N]: ")
+        if choice.lower() == "y":
+            subprocess.call("./setup/reset.sh")
+        else:
+            pass
 
     elif args.rest:
          # start an Empire instance and RESTful API

