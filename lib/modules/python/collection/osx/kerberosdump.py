@@ -1,5 +1,4 @@
 from builtins import object
-from lib.common import helpers
 
 
 class Module(object):
@@ -17,6 +16,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': ('This module will dump ccache kerberos'
                             'tickets to the specified directory'),
+
+            'Software': '',
+
+            'Techniques': ['T1208'],
 
             # True if the module needs to run in the background
             'Background': False,

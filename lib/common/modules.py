@@ -22,9 +22,6 @@ class Modules(object):
     def __init__(self, MainMenu, args):
 
         self.mainMenu = MainMenu
-
-        # pull the database connection object out of the main menu
-        self.conn = self.mainMenu.conn
         self.args = args
 
         # module format:
@@ -64,6 +61,7 @@ class Modules(object):
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
                 self.modules[moduleName] = mod.Module(self.mainMenu, [])
+                self.modules[moduleName].enabled = True
 
     def reload_module(self, moduleToReload):
         """

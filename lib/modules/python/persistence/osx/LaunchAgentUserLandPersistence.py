@@ -1,5 +1,6 @@
 from builtins import object
-import base64
+
+
 class Module(object):
 
     def __init__(self, mainMenu, params=[]):
@@ -14,6 +15,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Installs an Empire launchAgent.'),
+
+            'Software': '',
+
+            'Techniques': ['T1055'],
 
             # True if the module needs to run in the background
             'Background' : False,

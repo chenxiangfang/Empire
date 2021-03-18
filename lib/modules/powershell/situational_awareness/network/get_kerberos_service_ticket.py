@@ -19,6 +19,10 @@ class Module(object):
             # More verbose multi-line description of the module
             'Description': ('Retrieves IP addresses and usernames using event ID 4769 this can allow identification of a users machine. Can only run on a domain controller.'),
 
+            'Software': '',
+
+            'Techniques': ['T1097'],
+
             # True if the module needs to run in the background
             'Background': False,
 
@@ -113,13 +117,16 @@ class Module(object):
         if maxevents != "":
             scriptEnd += " -MaxEvents " + maxevents
         if excludecomputers == 'True':
-        	scriptEnd += " -ExcludeComputers $true"
+            scriptEnd += " -ExcludeComputers $true"
         if excludecomputers == 'False':
-        	scriptEnd += " -ExcludeComputers $false"
+            scriptEnd += " -ExcludeComputers $false"
 
         scriptEnd += " | Format-Table -AutoSize | Out-String"
 
+        # Get the random function name generated at install and patch the stager with the proper function name
         if obfuscate:
             scriptEnd = helpers.obfuscate(psScript=scriptEnd, installPath=self.mainMenu.installPath, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

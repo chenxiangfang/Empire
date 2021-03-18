@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -14,6 +17,10 @@ class Module(object):
 
             'Description': ('Set reversible encryption on a given domain account and then '
                             'force the password to be set on next user login.'),
+
+            'Software': '',
+
+            'Techniques': ['T1098'],
 
             'Background' : True,
 
@@ -102,6 +109,9 @@ class Module(object):
                         script += " -" + str(option) + " " + str(values['Value']) 
 
         script += ' | Out-String | %{$_ + \"`n\"};"`n'+str(moduleName)+' completed!"'
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script

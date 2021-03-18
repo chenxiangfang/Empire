@@ -41,6 +41,8 @@ Includes:
 from __future__ import division
 from __future__ import print_function
 
+import json
+
 from future import standard_library
 
 standard_library.install_aliases()
@@ -66,11 +68,10 @@ import fnmatch
 import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 import hashlib
 import datetime
-import uuid
-import ipaddress
-import simplejson as json
 
-from datetime import datetime
+from datetime import datetime, timezone
+from lib.database.base import Session
+from lib.database import models
 
 ###############################################################
 #
@@ -273,6 +274,14 @@ def strip_powershell_comments(data):
     return strippedCode
 
 
+def keyword_obfuscation(data):
+    functions = Session().query(models.Function).all()
+
+    for function in functions:
+        data = data.replace(function.keyword, function.replacement)
+
+    return data
+
 ####################################################################################
 #
 # PowerView dynamic generation helpers
@@ -445,7 +454,7 @@ def parse_credentials(data):
 
     # python/collection/prompt (Mac OS)
     elif b"text returned:" in parts[0]:
-        parts2 = parts[0].split("text returned:")
+        parts2 = parts[0].split(b"text returned:")
         if len(parts2) >= 2:
             password = parts2[-1]
             return [("plaintext", "", "", password, "", "")]
@@ -531,25 +540,25 @@ def parse_mimikatz(data):
         for x in range(8, 13):
             if lines[x].startswith(b"Domain :"):
 
-                domain, sid, krbtgtHash = "", "", ""
+                domain, sid, krbtgtHash = b"", b"", b""
 
                 try:
-                    domainParts = lines[x].split(":")[1]
-                    domain = domainParts.split("/")[0].strip()
-                    sid = domainParts.split("/")[1].strip()
+                    domainParts = lines[x].split(b":")[1]
+                    domain = domainParts.split(b"/")[0].strip()
+                    sid = domainParts.split(b"/")[1].strip()
 
                     # substitute the FQDN in if it matches
-                    if hostDomain.startswith(domain.lower()):
+                    if hostDomain.startswith(domain.decode("UTF-8").lower()):
                         domain = hostDomain
                         sid = domainSid
 
                     for x in range(0, len(lines)):
-                        if lines[x].startswith("User : krbtgt"):
-                            krbtgtHash = lines[x + 2].split(":")[1].strip()
+                        if lines[x].startswith(b"User : krbtgt"):
+                            krbtgtHash = lines[x + 2].split(b":")[1].strip()
                             break
 
-                    if krbtgtHash != "":
-                        creds.append(("hash", domain, "krbtgt", krbtgtHash, hostName, sid))
+                    if krbtgtHash != b"":
+                        creds.append(("hash", domain.decode('UTF-8'), "krbtgt", krbtgtHash.decode('UTF-8'), hostName.decode('UTF-8'), sid.decode('UTF-8')))
                 except Exception as e:
                     pass
 
@@ -558,23 +567,20 @@ def parse_mimikatz(data):
         if b'** SAM ACCOUNT **' in lines:
             domain, user, userHash, dcName, sid = "", "", "", "", ""
             for line in lines:
-                try:
-                    if line.strip().endswith("will be the domain"):
-                        domain = line.split("'")[1]
-                    elif line.strip().endswith("will be the DC server"):
-                        dcName = line.split("'")[1].split(".")[0]
-                    elif line.strip().startswith("SAM Username"):
-                        user = line.split(":")[1].strip()
-                    elif line.strip().startswith("Object Security ID"):
-                        parts = line.split(":")[1].strip().split("-")
-                        sid = "-".join(parts[0:-1])
-                    elif line.strip().startswith("Hash NTLM:"):
-                        userHash = line.split(":")[1].strip()
-                except:
-                    pass
+                if line.strip().endswith(b"will be the domain"):
+                    domain = line.split(b"'")[1]
+                elif line.strip().endswith(b"will be the DC server"):
+                    dcName = line.split(b"'")[1].split(b".")[0]
+                elif line.strip().startswith(b"SAM Username"):
+                    user = line.split(b":")[1].strip()
+                elif line.strip().startswith(b"Object Security ID"):
+                    parts = line.split(b":")[1].strip().split(b"-")
+                    sid = b"-".join(parts[0:-1])
+                elif line.strip().startswith(b"Hash NTLM:"):
+                    userHash = line.split(b":")[1].strip()
 
             if domain != "" and userHash != "":
-                creds.append(("hash", domain, user, userHash, dcName, sid))
+                creds.append(("hash", domain.decode('UTF-8'), user.decode('UTF-8'), userHash.decode('UTF-8'), dcName.decode('UTF-8'), sid.decode('UTF-8')))
 
     return uniquify_tuples(creds)
 
@@ -593,51 +599,36 @@ def get_config(fields):
     Fields should be comma separated.
         i.e. 'version,install_path'
     """
+    results = []
+    config = Session().query(models.Config).first()
 
-    conn = sqlite3.connect('./data/empire.db', check_same_thread=False)
-    conn.isolation_level = None
-
-    cur = conn.cursor()
-
-    # Check if there is a new field not in the database
-    columns = [i[1] for i in cur.execute('PRAGMA table_info(config)')]
     for field in fields.split(','):
-        if field.strip() not in columns:
-            cur.execute("ALTER TABLE config ADD COLUMN %s BLOB" % (field))
-
-    cur.execute("SELECT %s FROM config" % (fields))
-    results = cur.fetchone()
-    cur.close()
-    conn.close()
+        results.append(config[field.strip()])
 
     return results
 
 
-def get_listener_options(listenerName):
+def get_listener_options(listener_name):
     """
     Returns the options for a specified listenername from the database outside
     of the normal menu execution.
     """
     try:
-        conn = sqlite3.connect('./data/empire.db', check_same_thread=False)
-        conn.isolation_level = None
-        conn.row_factory = dict_factory
-        cur = conn.cursor()
-        cur.execute("SELECT options FROM listeners WHERE name = ?", [listenerName])
-        result = cur.fetchone()
-        cur.close()
-        conn.close()
-        return pickle.loads(result['options'])
+        listener_options = Session().query(models.Listener.options).filter(models.Listener.name == listener_name).first()
+        return listener_options
+
     except Exception:
         return None
 
 
 def get_datetime():
     """
-    Return the current date/time
+    Return the local current date/time
     """
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+def getutcnow():
+    return datetime.now(timezone.utc)
 
 def utc_to_local(utc):
     """
@@ -748,16 +739,28 @@ def color(string, color=None):
         elif string.strip().startswith("[*]"):
             attr.append('34')
             return '\x1b[%sm%s\x1b[0m' % (';'.join(attr), string)
+        elif string.strip().startswith("[>]"):
+            attr.append('33')
+            return '\x1b[%sm%s\x1b[0m' % (';'.join(attr), string)
         else:
             return string
 
 
-def lastseen(stamp, delay, jitter):
+def is_stale(lastseen: datetime, delay: int, jitter: float):
+    """Convenience function for calculating staleness"""
+    interval_max = (delay + delay * jitter) + 30
+    diff = getutcnow() - lastseen
+    stale = diff.total_seconds() > interval_max
+    return stale
+
+
+def lastseen(stamp: datetime, delay, jitter):
     """
     Colorize the Last Seen field based on measured delays
     """
     try:
-        delta = datetime.now() - datetime.strptime(stamp, "%Y-%m-%d %H:%M:%S")
+        stamp_display_local = stamp.strftime('%Y-%m-%d %H:%M:%S')
+        delta = getutcnow() - stamp
 
         # Set min threshold for delay/jitter
         if delay < 1:
@@ -765,14 +768,14 @@ def lastseen(stamp, delay, jitter):
         if jitter < 1:
             jitter = 1
 
-        if delta.seconds > delay * (jitter + 1) * 7:
-            return color(stamp, "red")
-        elif delta.seconds > delay * (jitter + 1) * 3:
-            return color(stamp, "yellow")
+        if delta.total_seconds() > delay * (jitter + 1) * 7:
+            return color(stamp_display_local, "red")
+        elif delta.total_seconds() > delay * (jitter + 1) * 3:
+            return color(stamp_display_local, "yellow")
         else:
-            return color(stamp, "green")
+            return color(stamp_display_local, "green")
     except Exception:
-        return stamp
+        return stamp[:19].replace("T", " ")
 
 
 def unique(seq, idfun=None):
@@ -820,7 +823,7 @@ def decode_base64(data):
         data += b'=' * missing_padding
 
     try:
-        result = base64.decodestring(data)
+        result = base64.decodebytes(data)
         return result
     except binascii.Error:
         # if there's a decoding error, just return the data
@@ -902,16 +905,16 @@ def obfuscate(installPath, psScript, obfuscationCommand):
         print(color("[!] PowerShell is not installed and is required to use obfuscation, please install it first."))
         return ""
     # When obfuscating large scripts, command line length is too long. Need to save to temp file
-    toObfuscateFilename = installPath + "data/misc/ToObfuscate.ps1"
-    obfuscatedFilename = installPath + "data/misc/Obfuscated.ps1"
+    toObfuscateFilename = installPath + "/data/misc/ToObfuscate.ps1"
+    obfuscatedFilename = installPath + "/data/misc/Obfuscated.ps1"
     toObfuscateFile = open(toObfuscateFilename, 'w')
     toObfuscateFile.write(psScript)
     toObfuscateFile.close()
     # Obfuscate using Invoke-Obfuscation w/ PowerShell
     subprocess.call(
-        "%s -C '$ErrorActionPreference = \"SilentlyContinue\";Invoke-Obfuscation -ScriptPath %s -Command \"%s\" -Quiet | Out-File -Encoding ASCII %s'" % (
-        get_powershell_name(), toObfuscateFilename, convert_obfuscation_command(obfuscationCommand),
-        obfuscatedFilename), shell=True)
+        "%s -C '$ErrorActionPreference = \"SilentlyContinue\";Import-Module ./lib/powershell/Invoke-Obfuscation/Invoke-Obfuscation.psd1;Invoke-Obfuscation -ScriptPath %s -Command \"%s\" -Quiet | Out-File -Encoding ASCII %s'" % (
+            get_powershell_name(), toObfuscateFilename, convert_obfuscation_command(obfuscationCommand),
+            obfuscatedFilename), shell=True)
     obfuscatedFile = open(obfuscatedFilename, 'r')
     # Obfuscation writes a newline character to the end of the file, ignoring that character
     psScript = obfuscatedFile.read()[0:-1]
@@ -932,6 +935,11 @@ def obfuscate_module(moduleSource, obfuscationCommand="", forceReobfuscation=Fal
 
     moduleCode = f.read()
     f.close()
+
+    # Get the random function name generated at install and patch the stager with the proper function name
+
+    moduleCode = keyword_obfuscation(moduleCode)
+
 
     # obfuscate and write to obfuscated source path
     path = os.path.abspath('empire.py').split('empire.py')[0] + "/"
@@ -1009,8 +1017,7 @@ class KThread(threading.Thread):
         self.killed = True
 
 
-def slackMessage(slackToken, slackChannel, slackText):
-    url = "https://slack.com/api/chat.postMessage"
-    data = urllib.parse.urlencode({'token': slackToken, 'channel': slackChannel, 'text': slackText})
-    req = urllib.request.Request(url, data.encode('UTF-8'))
+def slackMessage(slack_webhook_url, slack_text):
+    message = {'text': slack_text}
+    req = urllib.request.Request(slack_webhook_url, json.dumps(message).encode('UTF-8'))
     resp = urllib.request.urlopen(req)

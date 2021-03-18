@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -18,6 +21,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': ('This module will generate traffic on a provided range of ports '
                             'and supports both TCP and UDP. Useful to identify direct egress channels.'),
+
+            'Software': '',
+
+            'Techniques': ['T1041'],
 
             # True if the module needs to run in the background
             'Background' : False,
@@ -124,4 +131,6 @@ class Module(object):
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

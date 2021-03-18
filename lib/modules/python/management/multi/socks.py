@@ -1,8 +1,9 @@
 from __future__ import print_function
-from builtins import str
-from builtins import object
+
 import os
 import string
+from builtins import object
+from builtins import str
 
 from lib.common import helpers
 
@@ -20,6 +21,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Spawn an AROX relay to extend a SOCKS proxy through your agent.'),
+
+            'Software': '',
+
+            'Techniques': ['T1090'],
 
             # True if the module needs to run in the background
             'Background': True,
@@ -96,4 +101,4 @@ class Module(object):
             print(helpers.color("[!] Error rendering module template: {0}".format(e)))
             return ''
 
-        return module
+        return script

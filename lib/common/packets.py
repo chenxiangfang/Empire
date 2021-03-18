@@ -95,7 +95,8 @@ PACKET_NAMES = {
     "TASK_SHELL": 40,
     "TASK_DOWNLOAD": 41,
     "TASK_UPLOAD": 42,
-    
+    "TASK_DIR_LIST": 43,
+
     "TASK_GETJOBS": 50,
     "TASK_STOPJOB": 51,
     
@@ -274,9 +275,10 @@ def parse_routing_packet(stagingKey, data):
                 
                 if len(data) - offset < 20:
                     break
-                
+
                 RC4IV = data[0 + offset:4 + offset]
                 RC4data = data[4 + offset:20 + offset]
+
                 routingPacket = encryption.rc4(RC4IV + stagingKey.encode('UTF-8'), RC4data)
                 try:
                     sessionID = routingPacket[0:8].decode('UTF-8')

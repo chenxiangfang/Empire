@@ -1,5 +1,7 @@
 from __future__ import print_function
+
 from builtins import object
+
 from lib.common import helpers
 
 
@@ -18,7 +20,11 @@ class Module(object):
             'Description': (
                 'This modules takes advantage of the environment variable DYLD_PRINT_TO_FILE in order to escalate privileges on all versions Mac OS X Yosemite'
                 'WARNING: In order for this exploit to be performed files will be overwritten and deleted. This can set off endpoint protection systems and as of initial development, minimal testing has been performed.'),
-            
+
+            'Software': '',
+
+            'Techniques': ['TA0004'],
+
             # True if the module needs to run in the background
             'Background': False,
             
@@ -131,4 +137,5 @@ except:
             
 	""".format(fullpath=fullPath, filecontents=launcher, filename=fileName)
         
+
         return script

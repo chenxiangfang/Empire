@@ -14,6 +14,10 @@ class Module(object):
             'Description': ('Takes a screenshot of the current desktop and '
                             'returns the output as a .PNG.'),
 
+            'Software': '',
+
+            'Techniques': ['T1113'],
+
             'Background' : False,
 
             'OutputExtension' : 'png',
@@ -116,6 +120,9 @@ Get-Screenshot"""
                         script += " -" + str(option)
                     else:
                         script += " -" + str(option) + " " + str(values['Value'])
+        # Get the random function name generated at install and patch the stager with the proper function name
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script

@@ -1,3 +1,197 @@
+2/5/2021
+------------
+- Version 3.7.2 Master Release
+        - Fixed Malleable C2 issue where netbios/netbiosu transformations used excessive resources (@Cx01N)
+        - Fixed error when loading http_hop listener options (@Cx01N)
+
+1/27/2021
+------------
+- Version 3.7.1 Master Release
+        - Added Kali message to main menu
+
+1/18/2021
+------------
+- Version 3.7.0 Master Release
+        - Revamped backend database from direct sqlite3 to SQLAlchemy (@Cx01N, @Vinnybod)
+        - Added new Empire CLI to packaging (@Vinnybod)
+        - Added malleable C2 profiles to empire directory: /data/profiles (@Cx01N)
+        - Added --teamserver option to launcher (@Cx01N)
+        - Added support for logging into Empire from multiple locations (@Vinnybod)
+        - Added Invoke-WireTap (@Cx01N)
+        - Added Invoke-SauronEye (@Cx01N)
+        - Added Invoke-SharpLoginPrompt (@Cx01N)
+        - Fixed OneDrive Listener with new database (@Cx01N)
+        - Removed need to run setup database script (@Vinnybod)
+        - Updated docker image to use the locked dependencies in pyproject.toml (@Vinnybod)
+
+12/18/2020
+------------
+- Version 3.6.3 Master Release
+        - Added save path to download file message - #414 (@meldridge)
+        - Updated installation file formatting - #410 (@Pernat1y)
+        - Fixed python 3.9.1 issue with deprecated base64 function - #422 (@brimstone)
+        - Fixed dump creds and hash not being logged in credentials properly - #423 (@Cx01N)
+
+11/27/2020
+------------
+- Version 3.6.2 Master Release
+        - Added python support for HTTP malleable listener - #404 (@adamczi)
+        - Added new admin menu API endpoints - #403 (@Vinnybod, @Cx01N)
+        - Added chat server for Starkiller and new Empire CLI integration - #403 (@Vinnybod, @Cx01N)
+        - Added module PrivescCheck - #401 (@Invoke-Mimikatz)
+        - Fixed error in malleable profiles when http-stager is not defined - #407 (@Cx01N)
+
+11/16/2020
+------------
+- Version 3.6.1 Master Release
+        - Added editable wiki and sync option to repo - #398 (@Cx01N)
+        - Fixed byte error in python/collection/osx/prompt - #396 (@Cx01N)
+        - Fixed clear option issue for malleable listener - #393 (@Cx01N)
+        - Added update_comms, killdate, and workinghours endpoints - #399 (@Cx01N)
+
+11/9/2020
+------------
+- Version 3.6.0 Master Release
+        - Added new API endpoints for user and agent notes - #383 (@Cx01N)
+        - Added (readded) PowerView function add-netuser - #381 (@Cx01N)
+        - Added Invoke-SharpChisel module - #368 (@Invoke-Mimikatz)
+        - Added command option to psremoting and smbexec - #380 (@Invoke-Mimikatz)
+        - Added option to use multiple redirector listeners and chaining - #389 (@Cx01N)
+        - Added Invoke-Assembly module - #376 (@Invoke-Mimikatz)
+        - Updated API endpoints for dynamic plugin calls - #383 (@Cx01N)
+        - Updated plugin and module templates - #384 (@Cx01N)
+        - Fixed smbscanner to work on Windows 10 - #380 (@Invoke-Mimikatz)
+        - Fixed update agent comms (updatecomms) not properly changing - #382 (@Cx01N)
+        - Fixed download endpoint formatting and error handling - #383 (@Cx01N)
+        - Fixed issue with passing arguments to Get-DomainSID module - #374 (@mjokic)
+        - Fixed bat file length limit issue - #385 (@Hubbl3)
+
+10/22/2020
+------------
+- Version 3.5.2 Master Release
+        - Fixed token manipulation (steal_token) functionality in Windows 10 - #355 (@Hubbl3)
+        - Fixed lateral movement module New-GPOImmediateTask - #362 (@Cx01N)
+        - Fixed Invoke-PSRemoting blocking current agent - #359 (@mjokic)
+
+10/14/2020
+------------
+- Version 3.5.1 Master Release
+        - Fixed Invoke-Obfuscation in Kali/Dockers - #348 (@Cx01N, @Hubbl3)
+        - Refactored /api/map endpoint - #337 (@mattaereal)
+
+10/13/2020
+------------
+- Version 3.5.0 Master Release
+        - Added socketio notifications for Starkiller - #335 (@vinnybod)
+        - Added Invoke-ZeroLogon - #333 (@Cx01N)
+        - Added Invoke-SocksProxy - #332 (@Cx01N, @Hubbl3)
+        - Added powercat module - #319 (@Cx01N)
+        - Added powermad modules - #329 (@snovvcrash)
+        - Added self cleanup functionality to plugins - #332 (@Hubbl3)
+        - Updated Mimikatz 2.2.0 20200918 ZeroLogon - #330 (@Cx01N)
+        - Fixed dropbox listener and staging issues - #327 (@Cx01N)
+        - Fixed docker missing pyparsing in requirements.txt - #324 (@Cx01N)
+        - Fixed modules with missing MITRE ATT&CK techniques - #321 (@Cx01N)
+        - Fixed issue with inputs not being assigned color in helpers.py - #332 (@Cx01N)
+
+9/15/2020
+------------
+- Version 3.4.0 Master Release
+        - Added Malleable C2 HTTP Listener - #287 (@Johneiser, @Cx01N, @Hubbl3)
+        - Added reflective load ability for files - #309 (@Hubbl3)
+        - Added Invoke-DomainPasswordSpray - #295 (@Cx01N)
+        - Added Invoke-WinPEAS - #293 (@Cx01N)
+        - Added Invoke-Watson - #294 (@Cx01N)
+        - Added plugins being loaded at startup - #301 (@Cx01N)
+        - Updated moduleName to display full directory - #299 (@Cx01N)
+        - Updated info in Invoke-SMBExec to indicate single target - #286 (@Cx01N)
+        - Updated Slack API notifications to webhooks - #303 (@Cx01N)
+        - Fixed spaces for IIS default page in HTTP listener - #302 (@adamczi)
+        - Fixed agent spawning issue with MS-16-032 - #292 (@Cx01N)
+        - Fixed min language version for modules (@Cx01N)
+        - Fixed CLI stager incorrectly shutting down - #198 (@Cx01N)
+        - Fixed error message from active agents during shutdown - #308 (@Cx01N)
+
+9/8/2020
+------------
+- Version 3.4.0-RC2
+        - Added plugins being loaded at startup - #301 (@Cx01N)
+        - Fixed CLI stager incorrectly shutting down - #198 (@Cx01N)
+        - Updated moduleName to display full directory - #299 (@Cx01N)
+        - Updated info in Invoke-SMBExec to indicate single target - #286 (@Cx01N)
+
+9/1/2020
+------------
+- Version 3.4.0-RC1
+        - Added Malleable C2 HTTP Listener - #287 (@Johneiser, @Cx01N, @Hubbl3)
+    	- Added Invoke-DomainPasswordSpray - #295 (@Cx01N)
+    	- Added Invoke-WinPEAS - #293 (@Cx01N)
+    	- Added Invoke-Watson - #294 (@Cx01N)
+    	- Fixed agent spawning issue with MS-16-032 - #292 (@Cx01N)
+    	- Fixed min language version for modules (@Cx01N)
+
+8/18/2020
+------------
+- Version 3.3.4 Master Release
+    	- Fixed preobfuscate error: could not read module source path - #282 (@Cx01N)
+    	- Fixed issues http_foreign listener issue - #283 (@Cx01N)
+
+8/12/2020
+------------
+- Version 3.3.3 Master Release
+    	- Added get_gpo_computer module - #271 (@bytebl33d3r)
+    	- Added port forwarding module - #265 (@snovvcrash)
+    	- Updated HTTP/HTTP_com listeners to closer resemble IIS 7.5 - #277 (@adamczi)
+    	- Updated lateral movements (invoke_smbexec/invoke_dcom/invoke_executemsbuild/invoke_wmi) to include option for custom commands - #247 (@Invoke-Mimikatz)
+    	- Updated Mimikatz 2.2.0 20200809 AzureAd x-ms-RefreshTokenCredential & DPAPI everywhere - #279 (@Cx01N)
+    	- Fixed issue with duplicate results in db - #266 (@bytebl33d3r)
+    	- Fixed empty token issue in API - #274 (@Vinnybod)
+    	- Fixed missing keyword argument in ETWBypass - #273 (@Cx01N)
+
+8/5/2020
+------------
+- Version 3.3.2 Master Release
+	- Added Event Tracing for Windows (ETW) Bypass to stagers - #269 (@Hubbl3)
+	- Updated Mimikatz 20200805 CloudAP Key Derivation - #268 (@Cx01N)
+	- Updated Invoke-Kerberoast to John The Ripper format - #263 (@kazkansouh)
+	- Fixed indentation issues in schtasks - #267 (@adamczi)
+
+7/20/2020
+------------
+- Version 3.3.1 Master Release
+	- Updated Mimikatz to 20200715 NPLogonNotify passwords - #260 (@Cx01N)
+	- Fixed syntax errors in Get-GPPPassword and MS16-135 - #259 (@PaulWhitingS2)
+	- Fixed missing keylogger character issue - #252 (@Cx01N)
+	- Fixed missing agentPSversion variable - #262 (@Cx01N)
+
+7/10/2020
+------------
+- Version 3.3.0 Master Release
+	- Added MITRE Attack Techniques/Software Functionality - #242 (@Cx01N)
+	- Added keyword obfuscation option to modules - #244 (@Hubbl3)
+	- Added Invoke-Rubeus - #238 (@Cx01N)
+	- Added Filescraper commands - #236 (@vinnybod)
+	- Added AMSIBypass option to modules that generate new agents - #244 (@Hubbl3)
+	- Fixed timestamp format issue in agents list - #235 (@Cx01N)
+	- Fixed external/generate_agent generation issue - #240 (@Cx01N)
+	- Removed unused imports + few random fixes - #241 (@Cx01N)
+
+6/7/2020
+------------
+- Version 3.2.3 Master Release
+	- Added Invoke-Seatbelt module - #222 (@Cx01N)
+	- Added timezone awareness timestamps - #220 (@Vinnybod)
+	- Added MITRE ATT&CK techniques and software IDs to modules - #223 (@Cx01N)
+
+5/25/2020
+------------
+- Version 3.2.2 Master Release
+	- Added Invoke-PrintDemon module - #210 (@Hubbl3, @Cx01N)
+	- Updated Mimikatz 2.2.0 20200519 Windows 10 2004 - #211 (build 19041) (@Cx01N)
+	- Fixed youtube URL in trollsploit/thunderstruck - #207(@Gutters2Gardens)
+	- Added API endpoints for plugins - #213 (@Hubbl3)
+	- Fixed keylogger issue when writing to file - #206 (@Cx01N)
+
 5/10/2020
 ------------
 - Version 3.2.1 Master Release

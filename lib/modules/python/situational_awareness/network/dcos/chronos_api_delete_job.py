@@ -1,5 +1,5 @@
 from builtins import object
-from lib.common import helpers
+
 
 class Module(object):
 
@@ -15,6 +15,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Delete a Chronos job using the HTTP API service for the Chronos Framework'),
+
+            'Software': '',
+
+            'Techniques': ['T1106'],
 
             # True if the module needs to run in the background
             'Background' : True,

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-from builtins import str
 from builtins import object
+from builtins import str
+
+
 class Module(object):
     def __init__(self, mainMenu, params=[]):
         # metadata info about the module, not modified during runtime
@@ -13,6 +15,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': 'This module will enumerate the entire chat and IMessage SQL Database.',
+
+            'Software': '',
+
+            'Techniques': ['T1081'],
 
             # True if the module needs to run in the background
             'Background' : False,
@@ -249,7 +255,9 @@ except Exception as e:
 
         # add any arguments to the end exec
 
+
         return script
+
 
 # handle: Table links the number, country, type to the chat ID
 # SELECT * FROM handle

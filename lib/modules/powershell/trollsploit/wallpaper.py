@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import object
+
 import base64
+from builtins import object
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +16,10 @@ class Module(object):
             'Author': ['@harmj0y'],
 
             'Description': ('Uploads a .jpg image to the target and sets it as the desktop wallpaper.'),
+
+            'Software': '',
+
+            'Techniques': ['T1491'],
 
             'Background' : False,
 
@@ -144,6 +151,10 @@ namespace Wallpaper
             return ""
         
         script += "; 'Set-Wallpaper executed'"
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

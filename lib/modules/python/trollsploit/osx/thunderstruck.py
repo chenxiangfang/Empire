@@ -14,6 +14,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': 'Open Safari in the background and play Thunderstruck.',
 
+            'Software': '',
+
+            'Techniques': ['T1491'],
+
             # True if the module needs to run in the background
             'Background' : False,
 
@@ -86,4 +90,5 @@ except Exception as e:
     print(e)
 
 """
+
         return script

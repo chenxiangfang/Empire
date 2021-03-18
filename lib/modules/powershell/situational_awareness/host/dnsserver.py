@@ -1,6 +1,8 @@
-from builtins import str
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -12,6 +14,10 @@ class Module(object):
             'Author': ['DarkOperator'],
 
             'Description': ('Enumerates the DNS Servers used by a system.'),
+
+            'Software': '',
+
+            'Techniques': ['T1482', 'T1018'],
 
             'Background' : False,
 
@@ -102,6 +108,10 @@ function Get-SystemDNSServer
                         script += " -" + str(option)
                     else:
                         script += " -" + str(option) + " " + str(values['Value']) 
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

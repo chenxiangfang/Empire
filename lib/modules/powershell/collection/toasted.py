@@ -16,6 +16,10 @@ class Module(object):
                             "prompts the current user to enter their credentials into a native looking prompt. Notification stays on screen for ~25 seconds. "
                             "Requires Windows >= 8.1/2012"),
 
+            'Software': '',
+
+            'Techniques': ['T1141', 'T1514'],
+
             'Background': False,
 
             'OutputExtension': None,
@@ -144,7 +148,10 @@ class Module(object):
                         scriptEnd += " -" + str(option)
                     else:
                         scriptEnd += " -" + str(option) + " " + str(values['Value'])
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(psScript=scriptEnd, installPath=self.mainMenu.installPath, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

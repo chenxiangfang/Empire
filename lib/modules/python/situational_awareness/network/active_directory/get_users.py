@@ -14,6 +14,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': 'This module list users found in Active Directory',
 
+            'Software': '',
+
+            'Techniques': ['T1482'],
+
             # True if the module needs to run in the background
             'Background' : False,
 
@@ -119,4 +123,5 @@ output.wait()
 print("")
 
 """ % (BindDN, LDAPAddress, password)
+
         return script

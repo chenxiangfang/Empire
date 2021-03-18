@@ -1,7 +1,8 @@
-from builtins import str
 from builtins import object
-import base64
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +14,10 @@ class Module(object):
             'Author': ['@harmj0y'],
 
             'Description': ("Kills any process starting with a particular name."),
+
+            'Software': '',
+
+            'Techniques': ['T1491'],
 
             'Background' : True,
 
@@ -113,4 +118,7 @@ Invoke-ProcessKiller"""
         
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

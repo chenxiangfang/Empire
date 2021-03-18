@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -18,6 +21,10 @@ class Module(object):
                             "Incognito's functionality. Note: if you select "
                             "ImpersonateUser or CreateProcess, you must specify "
                             "one of Username, ProcessID, Process, or ThreadId."),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1134'],
 
             'Background' : False,
 
@@ -160,4 +167,6 @@ class Module(object):
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
     def __init__(self, mainMenu, params=[]):
@@ -9,6 +12,8 @@ class Module(object):
             'Name': 'enum_cred_store',
             'Author': ['BeetleChunks'],
             'Description': ('Dumps plaintext credentials from the Windows Credential Manager for the current interactive user.'),
+            'Software': '',
+            'Techniques': ['T1003'],
             'Background' : True,
             'OutputExtension' : None,
             'NeedsAdmin' : False,
@@ -59,4 +64,6 @@ class Module(object):
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

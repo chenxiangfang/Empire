@@ -1,6 +1,8 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
 
 
@@ -16,9 +18,10 @@ class Module(object):
                             'principal names. The function will default to the current user\'s '
                             'domain and logon server, but an alternative domain controller '
                             'can be provided. UDP scanning of management servers is optional.'),
+            'Software': '',
+            'Techniques': ['T1046'],
             'Background': True,
             'OutputExtension': None,
-            
             'NeedsAdmin': False,
             'OpsecSafe': True,
             'Language': 'powershell',
@@ -121,8 +124,12 @@ class Module(object):
             scriptEnd += " -CheckMgmt"
             if udpTimeOut != "":
                 scriptEnd += " -UDPTimeOut " + udpTimeOut
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd,
                                           obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

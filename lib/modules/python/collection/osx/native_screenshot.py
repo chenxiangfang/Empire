@@ -1,9 +1,5 @@
 from builtins import object
-from zlib_wrapper import compress
-import os
-from lib.common import helpers
-import hashlib
-import base64
+
 
 class Module(object):
 
@@ -19,6 +15,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Takes a screenshot of an OSX desktop using the Python Quartz libraries and returns the data.'),
+
+            'Software': '',
+
+            'Techniques': ['T1113'],
 
             # True if the module needs to run in the background
             'Background': False,
@@ -94,4 +94,6 @@ time.sleep(.1)
 print(imageData)
 time.sleep(.1)
 """
+
         return script
+

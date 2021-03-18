@@ -1,6 +1,8 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
 
 
@@ -15,7 +17,11 @@ class Module(object):
             
             'Description': ('Tater is a PowerShell implementation of the Hot Potato '
                             'Windows Privilege Escalation exploit from @breenmachine and @foxglovesec.'),
-            
+
+            'Software': '',
+
+            'Techniques': ['T1187'],
+
             'Background': True,
             
             'OutputExtension': None,
@@ -161,4 +167,7 @@ class Module(object):
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd,
                                           obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

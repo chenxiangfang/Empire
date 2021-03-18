@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +16,10 @@ class Module(object):
             'Author': ['@harmj0y', '@funoverip'],
 
             'Description': ("Retrieves the plaintext passwords for found McAfee's SiteList.xml files."),
+
+            'Software': '',
+
+            'Techniques': ['T1003'],
 
             'Background' : True,
 
@@ -84,7 +91,11 @@ class Module(object):
 
         scriptEnd += "| Out-String | %{$_ + \"`n\"};"
         scriptEnd += "'Get-SiteListPassword completed'"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

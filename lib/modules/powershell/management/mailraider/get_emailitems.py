@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +16,10 @@ class Module(object):
             'Author': ['@xorrior'],
 
             'Description': ("Returns all of the items for the specified folder."),
+
+            'Software': '',
+
+            'Techniques': ['T1114'],
 
             'Background' : True,
 
@@ -89,7 +96,10 @@ class Module(object):
         scriptEnd = "Get-OutlookFolder -Name '%s' | Get-EmailItems -MaxEmails %s" %(folderName, maxEmails)
 
         scriptEnd += ' | Out-String | %{$_ + \"`n\"};"`n'+str(moduleName)+' completed!"'
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

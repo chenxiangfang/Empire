@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -18,6 +21,10 @@ class Module(object):
             # More verbose multi-line description of the module
             'Description': ('Extract saved sessions & passwords for WinSCP, PuTTY, SuperPuTTY, FileZilla, '
                             'RDP, .ppk files, .rdp files, .sdtid files'),
+
+            'Software': '',
+
+            'Techniques': ['T1081'],
 
             # True if the module needs to run in the background
             'Background': False,
@@ -141,4 +148,6 @@ class Module(object):
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

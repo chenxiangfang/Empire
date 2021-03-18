@@ -14,6 +14,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': 'This module will return the user profile specified',
 
+            'Software': '',
+
+            'Techniques': ['T1482'],
+
             # True if the module needs to run in the background
             'Background' : False,
 
@@ -120,4 +124,5 @@ print("")
 print(subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout.read())
 
 """ % (BindDN, LDAPAddress, password, user)
+
         return script

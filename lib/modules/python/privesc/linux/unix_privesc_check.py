@@ -1,5 +1,7 @@
-from builtins import str
 from builtins import object
+from builtins import str
+
+
 class Module(object):
 
     def __init__(self, mainMenu, params=[]):
@@ -16,6 +18,10 @@ class Module(object):
             'Description': ('This script is intended to be executed locally on'
                             'a Linux box to enumerate basic system info, and search for common' 
                             'privilege escalation vectors with a all in one shell script.'),
+
+            'Software': '',
+
+            'Techniques': ['T1166'],
 
             # True if the module needs to run in the background
             'Background': False,
@@ -1621,4 +1627,6 @@ try:
 except Exception as e:
   print(e)
         """ %(ip,port,serveCount,url,privSetting)
+
         return script
+

@@ -17,6 +17,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': ('This module uses the DirectX.Capture and DShowNET .NET assemblies to capture video from a webcam.'),
 
+            'Software': '',
+
+            'Techniques': ['T1125'],
+
             # True if the module needs to run in the background
             'Background' : False,
 
@@ -217,6 +221,9 @@ Start-WebcamRecorder"""
                         script += " -" + str(option)
                     else:
                         script += " -" + str(option) + " " + str(values['Value'])
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script

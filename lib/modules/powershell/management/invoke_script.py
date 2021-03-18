@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +16,10 @@ class Module(object):
             'Author': ['@harmj0y'],
 
             'Description': ('Run a custom script. Useful for mass-taskings or script autoruns.'),
+
+            'Software': '',
+
+            'Techniques': ['T1064'],
 
             'Background' : True,
 
@@ -79,6 +86,9 @@ class Module(object):
             script += '\n'
 
         script += "%s" %(scriptCmd)
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script

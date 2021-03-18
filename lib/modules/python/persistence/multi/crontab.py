@@ -14,6 +14,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': 'This module establishes persistence via crontab',
 
+            'Software': '',
+
+            'Techniques': ['T1168'],
+
             # True if the module needs to run in the background
             'Background' : False,
 
@@ -119,4 +123,5 @@ else:
             print(subprocess.Popen('chmod +x %s', shell=True, stdout=subprocess.PIPE).stdout.read())
             print("Finished")
 """ % (Remove, Hourly, Hour, FileName, FileName, FileName, Hour, FileName, FileName)
+
         return script

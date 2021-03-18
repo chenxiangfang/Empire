@@ -14,6 +14,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': 'Change the login message for the user.',
 
+            'Software': '',
+
+            'Techniques': ['T1491'],
+
             # True if the module needs to run in the background
             'Background' : False,
 
@@ -118,4 +122,5 @@ if login == True:
 
 
 """ % (desktop, login, image, image)
+
         return script

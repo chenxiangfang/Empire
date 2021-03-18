@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -17,6 +20,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('This module will decrypt passwords saved in chrome and display them in the console.'),
+
+            'Software': '',
+
+            'Techniques': ['T1503'],
 
             # True if the module needs to run in the background
             'Background' : True,
@@ -63,7 +70,6 @@ class Module(object):
         #   like listeners/agent handlers/etc.
         self.mainMenu = mainMenu
 
-
         if params:
             for param in params:
                 # parameter format is [Name, Value]
@@ -105,7 +111,10 @@ class Module(object):
                         scriptEnd += " -" + str(option)
                     else:
                         scriptEnd += " -" + str(option) + " " + str(values['Value'])
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

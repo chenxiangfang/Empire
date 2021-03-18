@@ -18,6 +18,10 @@ class Module(object):
             # More verbose multi-line description of the module
             'Description': ('Upload a file to dropbox '),
 
+            'Software': '',
+
+            'Techniques': ['T1041'],
+
             # True if the module needs to run in the background
             'Background': False,
 
@@ -139,5 +143,6 @@ Invoke-DropboxUpload  """
                         script += " -" + str(option)
                     else:
                         script += " -" + str(option) + " " + str(values['Value'])
-        
+        script = helpers.keyword_obfuscation(script)
+
         return script

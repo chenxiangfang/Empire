@@ -19,6 +19,10 @@ class Module(object):
             # more verbose multi-line description of the module
             'Description': ('Installs a mail rule that will execute an AppleScript stager when a trigger word is present in the Subject of an incoming mail.'),
 
+            'Software': '',
+
+            'Techniques': ['T1155'],
+
             # True if the module needs to run in the background
             'Background' : False,
 
@@ -231,4 +235,5 @@ os.system("/usr/libexec/PlistBuddy -c 'Merge " + RulesActiveState + "' "+ home +
 os.system("rm " + SyncedRules)
 os.system("rm " + RulesActiveState)
         """ % (AppleScript, SyncedRules, RulesActiveState, plist, plist2, launcher)
+
         return script

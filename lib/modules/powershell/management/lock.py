@@ -1,5 +1,7 @@
 from builtins import object
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -11,6 +13,10 @@ class Module(object):
             'Author': ['@harmj0y'],
 
             'Description': ("Locks the workstation's display."),
+
+            'Software': '',
+
+            'Techniques': ['T1098'],
 
             'Background' : False,
 
@@ -89,4 +95,6 @@ Invoke-LockWorkStation; "Workstation locked."
 """
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script

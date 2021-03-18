@@ -1,5 +1,7 @@
-from builtins import object
 import base64
+from builtins import object
+
+
 class Module(object):
 
     def __init__(self, mainMenu, params=[]):
@@ -14,6 +16,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Installs an Empire Launch Agent.'),
+
+            'Software': '',
+
+            'Techniques': ['T1055'],
 
             # True if the module needs to run in the background
             'Background' : False,
@@ -159,3 +165,4 @@ print("\\n[+] Empire daemon has been written to "+daemonPath+"%(programName)s")
 """ % {"encBytes":encBytes, "plistSettings":plistSettings, "daemonName":daemonName, "programName":programName, "plistFilename":plistFilename}
 
         return script
+

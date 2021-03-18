@@ -1,5 +1,5 @@
 from builtins import object
-from lib.common import helpers
+
 
 class Module(object):
 
@@ -15,6 +15,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Uses Python\'s socket.gethostbyname("example.com") function to resolve host names on a remote agent.'),
+
+            'Software': '',
+
+            'Techniques': ['T1018'],
 
             # True if the module needs to run in the background
             'Background' : True,

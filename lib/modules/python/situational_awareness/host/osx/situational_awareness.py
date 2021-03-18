@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-from builtins import str
 from builtins import object
+from builtins import str
+
+
 class Module(object):
     def __init__(self, mainMenu, params=[]):
         # metadata info about the module, not modified during runtime
@@ -13,6 +15,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': 'This module will enumerate the basic items needed for OP.',
+
+            'Software': '',
+
+            'Techniques': ['T1082'],
 
             # True if the module needs to run in the background
             'Background' : False,

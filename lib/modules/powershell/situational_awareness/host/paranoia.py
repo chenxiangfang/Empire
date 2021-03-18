@@ -1,6 +1,8 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
 
 
@@ -15,6 +17,10 @@ class Module(object):
             'Author': ['pasv'],
             
             'Description': ('Continuously check running processes for the presence of suspicious users, members of groups, process names, and for any processes running off of USB drives.'),
+
+            'Software': '',
+
+            'Techniques': ['T1057'],
 
             'Background' : True,
 
@@ -106,7 +112,11 @@ class Module(object):
                         scriptEnd += " -" + str(option)
                     else:
                         scriptEnd += " -" + str(option) + " " + str(values['Value'])
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

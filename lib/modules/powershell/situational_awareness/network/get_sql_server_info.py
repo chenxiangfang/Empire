@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -11,15 +14,15 @@ class Module(object):
             'Name': 'Get-SQLServerInfo',
             'Author': ['@_nullbind', '@0xbadjuju'],
             'Description': ('Returns basic server and user information from target SQL Servers.'),
+            'Software': '',
+            'Techniques': ['T1046'],
             'Background' : True,
             'OutputExtension' : None,
-			
             'NeedsAdmin' : False,
             'OpsecSafe' : True,
             'Language' : 'powershell',
 			'MinPSVersion' : '2',
             'MinLanguageVersion' : '2',
-            
             'Comments': [
                 'https://github.com/NetSPI/PowerUpSQL/blob/master/PowerUpSQL.ps1'
             ]
@@ -84,16 +87,16 @@ class Module(object):
         
         scriptEnd = ""
         if check_all:
-            auxModuleSource = self.mainMenu.installPath + "data/module_source/situational_awareness/network/Get-SQLInstanceDomain.ps1"
+            ModuleSource = self.mainMenu.installPath + "data/module_source/situational_awareness/network/Get-SQLInstanceDomain.ps1"
             if obfuscate:
-                helpers.obfuscate_module(moduleSource=auxModuleSource, obfuscationCommand=obfuscationCommand)
-                auxModuleSource = moduleSource.replace("module_source", "obfuscated_module_source")
+                helpers.obfuscate_module(moduleSource=moduleSource, obfuscationCommand=obfuscationCommand)
+                ModuleSource = moduleSource.replace("module_source", "obfuscated_module_source")
             try:
-                with open(auxModuleSource, 'r') as auxSource:
+                with open(ModuleSource, 'r') as auxSource:
                     auxScript = auxSource.read()
                     script += " " + auxScript
             except:
-                print(helpers.color("[!] Could not read additional module source path at: " + str(auxModuleSource)))
+                print(helpers.color("[!] Could not read additional module source path at: " + str(ModuleSource)))
             scriptEnd = " Get-SQLInstanceDomain "
             if username != "":
                 scriptEnd += " -Username "+username
@@ -108,7 +111,13 @@ class Module(object):
             scriptEnd += " -Password "+password
         if instance != "" and not check_all:
             scriptEnd += " -Instance "+instance
+        scriptEnd = helpers.keyword_obfuscation(scriptEnd)
+        scriptEnd = helpers.keyword_obfuscation(scriptEnd)
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -14,6 +17,10 @@ class Module(object):
 
             'Description': ('Returns the ACLs associated with a specific active directory object. Part of PowerView. '
                 'WARNING: specify a specific object, otherwise a huge amount of data will be returned.'),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1003'],
 
             'Background' : True,
 
@@ -145,6 +152,10 @@ class Module(object):
                         script += " -" + str(option) + " " + str(values['Value']) 
 
         script += ' | Out-String | %{$_ + \"`n\"};"`n'+str(moduleName)+' completed!"'
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

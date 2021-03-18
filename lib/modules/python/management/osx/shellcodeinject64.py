@@ -1,8 +1,10 @@
 from __future__ import print_function
-from builtins import object
-from lib.common import helpers
-import os
+
 import base64
+import os
+from builtins import object
+
+from lib.common import helpers
 
 
 class Module(object):
@@ -19,6 +21,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Inject shellcode into a x64 bit process'),
+
+            'Software': '',
+
+            'Techniques': ['T1064'],
 
             # True if the module needs to run in the background
             'Background': False,

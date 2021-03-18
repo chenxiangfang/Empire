@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -14,6 +17,10 @@ class Module(object):
 
             'Description': ("Modifies a target service to create a local user and add it "
                             "to the local administrators."),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1087', 'T1038', 'T1031', 'T1034', 'T1057', 'T1012'],
 
             'Background' : True,
 
@@ -106,7 +113,11 @@ class Module(object):
                         scriptEnd += " -" + str(option)
                     else:
                         scriptEnd += " -" + str(option) + " " + str(values['Value']) 
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

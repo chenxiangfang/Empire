@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +16,10 @@ class Module(object):
             'Author': ['@mattifestation'],
 
             'Description': ('Generates a full-memory dump of a process. Note: To dump another user\'s process, you must be running from an elevated prompt (e.g to dump lsass)'),
+
+            'Software': '',
+
+            'Techniques': ['T1033'],
 
             'Background' : True,
 
@@ -100,7 +107,10 @@ class Module(object):
             if values['Value'] and values['Value'] != '':
                 if option != "Agent" and option != "ProcessName" and option != "ProcessId":
                     scriptEnd += " -" + str(option) + " " + str(values['Value'])
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

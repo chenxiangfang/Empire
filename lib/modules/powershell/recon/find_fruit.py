@@ -1,8 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
-import base64
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -14,6 +16,10 @@ class Module(object):
             'Author': ['@424f424f'],
 
             'Description': ("Searches a network range for potentially vulnerable web services."),
+
+            'Software': '',
+
+            'Techniques': ['T1102', 'T1256'],
 
             'Background' : True,
 
@@ -129,7 +135,11 @@ class Module(object):
             scriptEnd += " | ?{$_.Status -eq 'OK'}"
 
         scriptEnd += " | Format-Table -AutoSize | Out-String"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

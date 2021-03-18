@@ -1,8 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
-import base64
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -14,6 +16,10 @@ class Module(object):
             'Author': ['@424f424f'],
 
             'Description': ("Tests credentials against Basic Authentication."),
+
+            'Software': '',
+
+            'Techniques': ['T1071'],
 
             'Background' : True,
 
@@ -129,7 +135,11 @@ class Module(object):
                         scriptEnd += " -" + str(option) + " " + str(values['Value']) 
 
         scriptEnd += " | Out-String"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

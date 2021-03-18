@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -16,6 +19,10 @@ class Module(object):
                             "create logons with clear-text credentials without "
                             "triggering a suspicious Event ID 4648 (Explicit "
                             "Credential Logon)."),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1214', 'T1003'],
 
             'Background' : False,
 
@@ -156,4 +163,6 @@ class Module(object):
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

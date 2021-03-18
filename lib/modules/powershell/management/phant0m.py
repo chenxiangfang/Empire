@@ -1,7 +1,7 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
-import base64
+from builtins import str
 
 from lib.common import helpers
 
@@ -12,6 +12,8 @@ class Module(object):
             'Name': 'Invoke-Phant0m',
             'Author': ['@leesoh'],
             'Description': ('Kills Event Log Service Threads'),
+            'Software': '',
+            'Techniques': ['T1070', 'T1089'],
             'Background': False,
             'OutputExtension': None,
             'NeedsAdmin': True,
@@ -47,9 +49,7 @@ class Module(object):
         moduleSource = self.mainMenu.installPath + "/data/module_source/management/Invoke-Phant0m.ps1"
 
         if obfuscate:
-            helpers.obfuscate_module(
-                moduleSource=moduleSource,
-                obfuscationCommand=obfuscationCommand)
+            helpers.obfuscate_module(moduleSource=moduleSource, obfuscationCommand=obfuscationCommand)
             moduleSource = moduleSource.replace("module_source",
                                                 "obfuscated_module_source")
 
@@ -76,10 +76,10 @@ class Module(object):
                             values['Value'])
 
         if obfuscate:
-
-            scriptEnd = helpers.obfuscate(
-                psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
+            scriptEnd = helpers.obfuscate(psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
 
         script += scriptEnd
         script += "| Out-String"
+        script = helpers.keyword_obfuscation(script)
+
         return script

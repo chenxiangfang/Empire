@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -15,6 +18,10 @@ class Module(object):
             'Description': ('Displays Service Principal Names (SPN) for domain accounts '
                             'based on SPN service name, domain account, or domain group '
                             'via LDAP queries.'),
+
+            'Software': '',
+
+            'Techniques': ['T1207'],
 
             'Background' : True,
 
@@ -98,4 +105,7 @@ class Module(object):
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

@@ -1,5 +1,7 @@
 from __future__ import print_function
+
 from builtins import object
+
 from lib.common import helpers
 
 
@@ -17,6 +19,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Spawns a new Empire agent using an existing sudo session.  This works up until El Capitan.'),
+
+            'Software': 'T1169',
+
+            'Techniques': ['T1050'],
 
             # True if the module needs to run in the background
             'Background' : False,
@@ -117,4 +123,5 @@ while exitLoop is False:
         except:
             pass
             """ % (launcher)
+
             return script

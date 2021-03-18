@@ -1,18 +1,25 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
     def __init__(self, mainMenu, params=[]):
 
         self.info = {
-            'Name': 'Get-SiteListPassword',
+            'Name': 'Get-System',
 
             'Author': ['@harmj0y', '@mattifestation'],
 
             'Description': ("Gets SYSTEM privileges with one of two methods."),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1103'],
 
             'Background' : False,
 
@@ -117,7 +124,11 @@ class Module(object):
 
             scriptEnd += "| Out-String | %{$_ + \"`n\"};"
             scriptEnd += "'Get-System completed'"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

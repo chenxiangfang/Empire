@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +16,8 @@ class Module(object):
             'Description': ('Returns column information from target SQL Servers. Supports '
                             'search by keywords, sampling data, and validating credit card '
                             'numbers.'),
+            'Software': '',
+            'Techniques': ['T1046'],
             'Background' : True,
             'OutputExtension' : None,
             
@@ -64,6 +69,7 @@ class Module(object):
         }
 
         self.mainMenu = mainMenu
+
         for param in params:
             # parameter format is [Name, Value]
             option, value = param
@@ -117,7 +123,10 @@ class Module(object):
             scriptEnd += " -Instance "+instance
         if no_defaults:
             scriptEnd += " -NoDefaults "
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

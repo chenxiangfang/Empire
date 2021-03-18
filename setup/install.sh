@@ -1,69 +1,92 @@
 #!/bin/bash
+
 function install_powershell() {
-	# Deb 10.x
-	if cat /etc/debian_version | grep 10.* ; then
-    # Download the Microsoft repository GPG keys
-    wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb
+	# Debian 10.x
+	if grep "10.*" /etc/debian_version 2>/dev/null; then
+		# Download the Microsoft repository GPG keys
+		wget https://packages.microsoft.com/config/debian/10/packages-microsoft-prod.deb
 
-    # Register the Microsoft repository GPG keys
-    sudo dpkg -i packages-microsoft-prod.deb
+		# Register the Microsoft repository GPG keys
+		sudo dpkg -i packages-microsoft-prod.deb
 
-    # Update the list of products
-    sudo apt-get update
+		# Update the list of products
+		sudo apt-get update
 
-    # Install PowerShell
-    sudo apt-get install -y powershell
-	# Deb 9.x
-	elif cat /etc/debian_version | grep 9.* ; then
+		# Install PowerShell
+		sudo apt-get install -y powershell
+
+	# Debian 9.x
+	elif grep "9.*" /etc/debian_version 2>/dev/null; then
 		# Install system components
 		sudo apt-get install -y apt-transport-https curl
+
 		# Import the public repository GPG keys
 		curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
 		# Register the Microsoft Product feed
 		sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-stretch-prod stretch main" > /etc/apt/sources.list.d/microsoft.list'
+
 		# Update the list of products
 		sudo apt-get update
+
 		# Install PowerShell
 		sudo apt-get install -y powershell
-	# Deb 8.x
-	elif cat /etc/debian_version | grep 8.* ; then
+
+	# Debian 8.x
+	elif grep "8.*" /etc/debian_version 2>/dev/null; then
 		# Install system components
 		sudo apt-get install -y apt-transport-https curl gnupg
+
 		# Import the public repository GPG keys
 		curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
 		# Register the Microsoft Product feed
 		sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-debian-jessie-prod jessie main" > /etc/apt/sources.list.d/microsoft.list'
+
 		# Update the list of products
 		sudo apt-get update
+
 		# Install PowerShell
 		sudo apt-get install -y powershell
-	#Ubuntu
-	elif lsb_release -d | grep -q "Ubuntu"; then
+
+	# Ubuntu
+	elif lsb_release -d 2>/dev/null | grep -q "Ubuntu"; then
 		# Read Ubuntu version
 		local ubuntu_version=$( grep 'DISTRIB_RELEASE=' /etc/lsb-release | grep -o -E [[:digit:]]+\\.[[:digit:]]+ )
+
 		# Install system components
 		sudo apt-get install -y apt-transport-https curl
+
 		# Import the public repository GPG keys
 		curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
 		# Register the Microsoft Ubuntu repository
 		curl https://packages.microsoft.com/config/ubuntu/$ubuntu_version/prod.list | sudo tee /etc/apt/sources.list.d/microsoft.list
+
 		# Update the list of products
 		sudo apt-get update
+
 		# Install PowerShell
 		sudo apt-get install -y powershell
-	#Kali Linux
-	elif lsb_release -d | grep -q "Kali"; then
+
+	# Kali Linux
+	elif lsb_release -d 2>/dev/null | grep -q "Kali"; then
 		apt update && apt -y install powershell
+
+	else
+		echo 'Unsupported OS. Exiting.' && exit
 	fi
-	if ls /opt/microsoft/powershell/*/DELETE_ME_TO_DISABLE_CONSOLEHOST_TELEMETRY; then
-		rm /opt/microsoft/powershell/*/DELETE_ME_TO_DISABLE_CONSOLEHOST_TELEMETRY
-	fi
+
+	# Disable telemetry
+	rm /opt/microsoft/powershell/*/DELETE_ME_TO_DISABLE_CONSOLEHOST_TELEMETRY 2>/dev/null
+
+	# Install Invoke-Obfuscation module
 	mkdir -p /usr/local/share/powershell/Modules
 	cp -r ../lib/powershell/Invoke-Obfuscation /usr/local/share/powershell/Modules
 }
 
 function install_xar() {
-	# xar-1.6.1 has an incompatability with libssl 1.1.x that is patched here
+	# xar-1.6.1 has an incompatibility with libssl 1.1.x that is patched here
 	# for older OS on libssl 1.0.x, we continue to use 1.6.1
 	if is_libssl_1_0; then
 		wget https://github.com/BC-SECURITY/xar/archive/xar-1.6.1.tar.gz
@@ -81,7 +104,7 @@ function install_xar() {
 function install_bomutils() {
 	git clone https://github.com/hogliux/bomutils.git
 	(cd bomutils && make)
-	(cd bomutils && make install)
+	(cd bomutils && sudo make install)
 	chmod 755 bomutils/build/bin/mkbom && sudo cp bomutils/build/bin/mkbom /usr/local/bin/.
 }
 
@@ -101,7 +124,7 @@ function is_libssl_1_0() {
 	false
 }
 
-# Ask for the administrator password upfront so sudo is no longer required at Installation.
+# Ask for the sudo password upfront so it is no longer required during installation.
 sudo -v
 
 IFS='/' read -a array <<< pwd
@@ -113,10 +136,10 @@ fi
 
 Pip_file="requirements.txt"
 
-if lsb_release -d | grep -q "Kali"; then
+if lsb_release -d 2>/dev/null | grep -q "Kali"; then
 	apt-get update
 	sudo apt-get install -y make autoconf g++ python3-dev swig python3-pip libxml2-dev default-jdk zlib1g-dev libssl1.1 build-essential libssl-dev libxml2-dev zlib1g-dev
-elif lsb_release -d | grep -q "Ubuntu"; then
+elif lsb_release -d 2>/dev/null | grep -q "Ubuntu"; then
 	if is_libssl_1_0; then
 		LibSSL_pkgs="libssl1.0.0 libssl-dev"
 		Pip_file="requirements_libssl1.0.txt"
@@ -143,18 +166,14 @@ install_bomutils
 
 install_powershell
 
-if ls /usr/bin/ | grep -q "python3"; then
-	if ! type pip3 > /dev/null; then
-		sudo apt-get --assume-yes install python3-pip
-	fi
-	sudo pip3 install -r $Pip_file
-fi
+# Install Python dependencies
+sudo pip3 install -r "$Pip_file"
 
-# set up the database schema
-python3 ./setup_database.py
-
-# generate a cert
+# Generate a cert
 ./cert.sh
+
+# Set up the database schema
+python3 ./setup_database.py
 
 cd ..
 

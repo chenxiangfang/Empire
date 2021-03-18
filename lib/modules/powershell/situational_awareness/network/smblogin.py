@@ -1,7 +1,9 @@
 from __future__ import print_function
+
 from builtins import str
-from builtins import object
+
 from lib.common import helpers
+
 
 class Module:
 
@@ -14,6 +16,10 @@ class Module:
 
             # More verbose multi-line description of the module
             'Description': ('Validates username & password combination(s) across a host or group of hosts using the SMB protocol.'),
+
+            'Software': '',
+
+            'Techniques': ['T1135', 'T1187'],
 
             'Background': False,
 
@@ -130,6 +136,7 @@ class Module:
 
         scriptEnd += "| Out-String | %{$_ + \"`n\"};"
         scriptEnd += "'Invoke-SMBLogin completed'"
-
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

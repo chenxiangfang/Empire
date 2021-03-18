@@ -16,6 +16,10 @@ class Module(object):
                             'a Linux box to enumerate basic system info, and search for common' 
                             'privilege escalation vectors with pure python.'),
 
+            'Software': '',
+
+            'Techniques': ['T1166'],
+
             # True if the module needs to run in the background
             'Background': False,
 
@@ -440,4 +444,5 @@ def callFunctionLinux():
 callFunctionLinux()
 
 """
+
         return script

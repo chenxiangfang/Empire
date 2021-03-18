@@ -1,5 +1,7 @@
 from __future__ import print_function
+
 from builtins import object
+
 from lib.common import helpers
 
 
@@ -17,6 +19,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Spawns a new Empire agent.'),
+
+            'Software': '',
+
+            'Techniques': ['T1050'],
 
             # True if the module needs to run in the background
             'Background' : False,
@@ -92,4 +98,5 @@ class Module(object):
 
             launcher = launcher.replace('"', '\\"')
             script = 'os.system("%s")' % (launcher)
+
             return script

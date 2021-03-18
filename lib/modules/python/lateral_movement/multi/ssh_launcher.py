@@ -1,6 +1,9 @@
 from __future__ import print_function
+
 from builtins import object
+
 from lib.common import helpers
+
 
 class Module(object):
     def __init__(self, mainMenu, params=[]):
@@ -14,6 +17,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': 'This module will send an launcher via ssh.',
+
+            'Software': '',
+
+            'Techniques': ['T1021'],
 
             # True if the module needs to run in the background
             'Background' : True,
@@ -139,4 +146,5 @@ print(status)
 print(output)
 
 """ % (launcher, login, password)
+
         return script

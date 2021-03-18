@@ -1,6 +1,7 @@
-from builtins import object
 import base64
 import os
+from builtins import object
+
 
 class Module(object):
 
@@ -16,6 +17,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Takes a screenshot of an OSX desktop using the Python mss module. The python-mss module utilizes ctypes and the CoreFoundation library.'),
+
+            'Software': '',
+
+            'Techniques': ['T1113'],
 
             # True if the module needs to run in the background
             'Background': False,
@@ -108,3 +113,4 @@ run(data)
 """ % (module_data, self.options['Monitor']['Value'], self.options['SavePath']['Value'])
 
         return script
+

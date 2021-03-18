@@ -1,7 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
+from builtins import str
+
 from lib.common import helpers
+
 
 class Module(object):
 
@@ -20,6 +23,10 @@ class Module(object):
                             'awareness to a penetration tester during the reconnaissance phase '
                             'It gathers information about the local system, users, and domain information.'
                             ),
+
+            'Software': '',
+
+            'Techniques': ['T1082'],
 
             # True if the module needs to run in the background
             'Background' : False,
@@ -84,7 +91,11 @@ class Module(object):
 
         script = moduleCode
         scriptEnd = "Invoke-HostRecon"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script
+

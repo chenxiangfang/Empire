@@ -1,9 +1,10 @@
 from __future__ import print_function
-from builtins import str
+
 from builtins import object
-import re
+from builtins import str
+
 from lib.common import helpers
-import pdb
+
 
 class Module(object):
 
@@ -20,6 +21,10 @@ class Module(object):
                             "you're injecting custom shellcode, make sure it's in the "
                             "correct format and matches the architecture of the process "
                             "you're injecting into."),
+
+            'Software': 'S0194',
+
+            'Techniques': ['T1064'],
 
             'Background' : True,
 
@@ -143,7 +148,10 @@ class Module(object):
                         scriptEnd += " -" + str(option) + " " + str(values['Value'])
 
         scriptEnd += "; 'Shellcode injected.'"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
+        script = helpers.keyword_obfuscation(script)
+
         return script

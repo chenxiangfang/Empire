@@ -1,5 +1,7 @@
-from builtins import object
 import base64
+from builtins import object
+
+
 class Module(object):
 
     def __init__(self, mainMenu, params=[]):
@@ -14,6 +16,10 @@ class Module(object):
 
             # more verbose multi-line description of the module
             'Description': ('Configures and Empire dylib for use in a Dylib hijack, given the path to a legitimate dylib of a vulnerable application. The architecture of the dylib must match the target application. The configured dylib will be copied local to the hijackerPath'),
+
+            'Software': '',
+
+            'Techniques': ['T1157'],
 
             # True if the module needs to run in the background
             'Background' : False,

